@@ -1,0 +1,7 @@
+{
+  "name": "Rvo.Editor",
+  "rootNamespace": "Rvo.Editor",
+  "references": ["Rvo.Runtime", "Unity.Mathematics", "Unity.Collections"],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true
+}

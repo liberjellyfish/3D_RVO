@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="7" result="Passed" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-26 17:00:44Z" end-time="2026-09-26 17:00:44Z" duration="0.0497267">
+  <test-suite type="TestSuite" id="1000" name="RvoFrameworkValidation" fullname="RvoFrameworkValidation" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-09-26 17:00:44Z" end-time="2026-09-26 17:00:44Z" duration="0.049727" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1010" name="Rvo.Tests.EditMode.dll" fullname="D:/unityhub/tries/3D_RVO/Temp/RvoFrameworkValidation/Library/ScriptAssemblies/Rvo.Tests.EditMode.dll" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-09-26 17:00:44Z" end-time="2026-09-26 17:00:44Z" duration="0.043150" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="29260" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1011" name="Rvo" fullname="Rvo" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-09-26 17:00:44Z" end-time="2026-09-26 17:00:44Z" duration="0.042497" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1012" name="Tests" fullname="Rvo.Tests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-09-26 17:00:44Z" end-time="2026-09-26 17:00:44Z" duration="0.042182" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1001" name="FrameworkContractTests" fullname="Rvo.Tests.FrameworkContractTests" classname="Rvo.Tests.FrameworkContractTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-09-26 17:00:44Z" end-time="2026-09-26 17:00:44Z" duration="0.041498" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1008" name="Full3DDoesNotFallBackToPlanarModules" fullname="Rvo.Tests.FrameworkContractTests.Full3DDoesNotFallBackToPlanarModules" methodname="Full3DDoesNotFallBackToPlanarModules" classname="Rvo.Tests.FrameworkContractTests" runstate="Runnable" seed="1003921753" result="Passed" start-time="2026-09-26 17:00:44Z" end-time="2026-09-26 17:00:44Z" duration="0.011204" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1002" name="InvalidConfigurationIsRejected" fullname="Rvo.Tests.FrameworkContractTests.InvalidConfigurationIsRejected" methodname="InvalidConfigurationIsRejected" classname="Rvo.Tests.FrameworkContractTests" runstate="Runnable" seed="1540168969" result="Passed" start-time="2026-09-26 17:00:44Z" end-time="2026-09-26 17:00:44Z" duration="0.000489" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-suite type="ParameterizedMethod" id="1007" name="SkeletonNeverSilentlyRunsAnUnimplementedAlgorithm" fullname="Rvo.Tests.FrameworkContractTests.SkeletonNeverSilentlyRunsAnUnimplementedAlgorithm" classname="Rvo.Tests.FrameworkContractTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-26 17:00:44Z" end-time="2026-09-26 17:00:44Z" duration="0.005395" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1003" name="SkeletonNeverSilentlyRunsAnUnimplementedAlgorithm(None)" fullname="Rvo.Tests.FrameworkContractTests.SkeletonNeverSilentlyRunsAnUnimplementedAlgorithm(None)" methodname="SkeletonNeverSilentlyRunsAnUnimplementedAlgorithm" classname="Rvo.Tests.FrameworkContractTests" runstate="Runnable" seed="1348420081" result="Passed" start-time="2026-09-26 17:00:44Z" end-time="2026-09-26 17:00:44Z" duration="0.003058" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1004" name="SkeletonNeverSilentlyRunsAnUnimplementedAlgorithm(VO)" fullname="Rvo.Tests.FrameworkContractTests.SkeletonNeverSilentlyRunsAnUnimplementedAlgorithm(VO)" methodname="SkeletonNeverSilentlyRunsAnUnimplementedAlgorithm" classname="Rvo.Tests.FrameworkContractTests" runstate="Runnable" seed="515148981" result="Passed" start-time="2026-09-26 17:00:44Z" end-time="2026-09-26 17:00:44Z" duration="0.000163" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1005" name="SkeletonNeverSilentlyRunsAnUnimplementedAlgorithm(RVO)" fullname="Rvo.Tests.FrameworkContractTests.SkeletonNeverSilentlyRunsAnUnimplementedAlgorithm(RVO)" methodname="SkeletonNeverSilentlyRunsAnUnimplementedAlgorithm" classname="Rvo.Tests.FrameworkContractTests" runstate="Runnable" seed="399860367" result="Passed" start-time="2026-09-26 17:00:44Z" end-time="2026-09-26 17:00:44Z" duration="0.000107" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1006" name="SkeletonNeverSilentlyRunsAnUnimplementedAlgorithm(ORCA)" fullname="Rvo.Tests.FrameworkContractTests.SkeletonNeverSilentlyRunsAnUnimplementedAlgorithm(ORCA)" methodname="SkeletonNeverSilentlyRunsAnUnimplementedAlgorithm" classname="Rvo.Tests.FrameworkContractTests" runstate="Runnable" seed="605891097" result="Passed" start-time="2026-09-26 17:00:44Z" end-time="2026-09-26 17:00:44Z" duration="0.000092" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-case id="1009" name="WorldCommitsTogetherAndRejectsInvalidLifecycleCalls" fullname="Rvo.Tests.FrameworkContractTests.WorldCommitsTogetherAndRejectsInvalidLifecycleCalls" methodname="WorldCommitsTogetherAndRejectsInvalidLifecycleCalls" classname="Rvo.Tests.FrameworkContractTests" runstate="Runnable" seed="1454159018" result="Passed" start-time="2026-09-26 17:00:44Z" end-time="2026-09-26 17:00:44Z" duration="0.013234" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: C:/Users/20505/AppData/LocalLow/DefaultCompany/RvoFrameworkValidation\TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

@@ -1,0 +1,7 @@
+{
+  "name": "Rvo.Runtime",
+  "rootNamespace": "Rvo",
+  "references": ["Unity.Mathematics", "Unity.Collections", "Unity.Burst"],
+  "allowUnsafeCode": false,
+  "autoReferenced": true
+}

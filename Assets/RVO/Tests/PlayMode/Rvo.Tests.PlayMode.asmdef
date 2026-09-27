@@ -1,0 +1,7 @@
+{
+  "name": "Rvo.Tests.PlayMode",
+  "rootNamespace": "Rvo.Tests",
+  "references": ["Rvo.Runtime", "Unity.Mathematics", "Unity.Collections"],
+  "optionalUnityReferences": ["TestAssemblies"],
+  "autoReferenced": false
+}
