@@ -181,6 +181,8 @@ namespace Rvo
         private void OnGUI()
         {
             if (!ShowControls) return;
+            int requestedTier = -1;
+            bool navigationMode = Profile != null && Profile.Navigation.Enabled;
             if (hudSkin == null) hudSkin = Instantiate(GUI.skin);
             hudSkin.label.fontSize = HudFontSize; hudSkin.label.wordWrap = true;
             hudSkin.button.fontSize = HudFontSize; hudSkin.button.fixedHeight = HudFontSize + 16;
@@ -188,7 +190,7 @@ namespace Rvo
             var previousSkin = GUI.skin; GUI.skin = hudSkin;
             GUILayout.BeginArea(new Rect(12, 12, Mathf.Max(220, Mathf.Min(430, Screen.width * 0.36f - 24)), Mathf.Max(80, Screen.height - 24)), GUI.skin.box);
             hudScroll = GUILayout.BeginScrollView(hudScroll);
-            GUILayout.Label(Navigation == null ? "RVO · Phase 1 / XZ" : "RVO · Phase 2 / Grid A*");
+            GUILayout.Label(navigationMode ? "RVO · Phase 2 / Grid A*" : "RVO · Phase 1 / XZ");
             GUILayout.Label(World == null ? LastError ?? "Not running" :
                 $"{World.Settings.Avoidance} | Agents {World.Settings.AgentCount} | Tick {World.Tick}");
             GUILayout.BeginHorizontal();
@@ -196,7 +198,7 @@ namespace Rvo
             if (GUILayout.Button("Step")) { Paused = true; StepOnce(); }
             if (GUILayout.Button("Reset")) ResetSimulation();
             GUILayout.EndHorizontal();
-            if (Navigation == null)
+            if (!navigationMode)
             {
                 GUILayout.BeginHorizontal();
                 if (GUILayout.Button("None (reset)")) SetAvoidance((int)AvoidanceAlgorithm.None);
@@ -207,16 +209,17 @@ namespace Rvo
                 if (GUILayout.Button("ORCA (reset)")) SetAvoidance((int)AvoidanceAlgorithm.ORCA);
                 GUILayout.EndHorizontal();
             }
-            else
+            else if (Navigation != null)
             {
                 GUILayout.Label($"{Navigation.Map.Width} x {Navigation.Map.Height} | Baked / static");
                 GUILayout.BeginHorizontal();
                 for (int tier = 0; tier < 3; tier++)
-                    if (GUILayout.Button($"{(tier == AgentTier ? "● " : "")}{Profile.CountForTier(tier)}")) SetAgentTier(tier);
+                    if (GUILayout.Button($"{(tier == AgentTier ? "● " : "")}{Profile.CountForTier(tier)}")) requestedTier = tier;
                 GUILayout.EndHorizontal();
                 GUILayout.Label($"Arrived {Navigation.ArrivedCount} | Pending {Navigation.PendingCount} | No path {Navigation.NoPathCount}");
+                GUILayout.Label($"Ready {Navigation.ReadyCount} | Direct/tick {Navigation.LastDirectPaths} | A* weight {Navigation.Settings.EffectiveHeuristicWeight:F2}");
                 GUILayout.Label($"Search nodes/tick {Navigation.LastExpandedNodes} | Requests {Navigation.ReplanCount}");
-                GUILayout.Label($"Safety scale {NavigationSolver.LastSafetyScale:F3} | Limited ticks {NavigationSolver.SafetyLimitedTicks}");
+                GUILayout.Label($"Safety min scale {NavigationSolver.LastSafetyScale:F3} | Limited agents {NavigationSolver.LastLimitedAgents} | Ticks {NavigationSolver.SafetyLimitedTicks}");
                 GUILayout.Label($"Safety pair checks {NavigationSolver.LastSafetyPairChecks} | Static truncated {NavigationSolver.LastStaticTruncations}");
                 GUILayout.Label($"Seed {Navigation.Settings.Seed} | Step {World.LastMetrics.TotalSimulationMilliseconds:F2} ms");
                 GUILayout.Label("New map: exit Play, then Generate + Bake in Profile.");
@@ -234,7 +237,7 @@ namespace Rvo
             if (World != null)
             {
                 if (GUILayout.Button($"Query: {World.Settings.NeighborSearch}"))
-                    SetNeighborSearch(1 - (int)World.Settings.NeighborSearch);
+                    SetNeighborSearch(((int)World.Settings.NeighborSearch + 1) % 3);
                 if (GUILayout.Button($"Backend: {World.Settings.Backend}"))
                     SetBackend(1 - (int)World.Settings.Backend);
                 if (GUILayout.Button($"Side bias: {World.Settings.PreferredSideBias:F2} (switch/reset)"))
@@ -257,6 +260,8 @@ namespace Rvo
                 for (int i = 0; i < DemoProfiles.Length; i++)
                     if (GUILayout.Button(DemoProfiles[i].name)) SelectProfile(i);
             GUILayout.EndScrollView(); GUILayout.EndArea(); GUI.skin = previousSkin;
+            // 绘制结束后再切档；错误配置销毁世界时，不在同一 GUI 事件中继续读取它。
+            if (requestedTier >= 0) SetAgentTier(requestedTier);
         }
     }
 }

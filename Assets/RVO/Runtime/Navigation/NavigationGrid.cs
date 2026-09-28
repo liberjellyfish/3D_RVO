@@ -24,6 +24,32 @@ namespace Rvo
         internal readonly byte[] Edges;
         private readonly ObstacleNode[] nodes;
         private readonly int[] spawnCells;
+        private NavigationLandmarks landmarks;
+        private int[] jumpTargets;
+        // 不可变地图按需构建一次，所有 agent / 重置共享；不改变现有二进制格式。
+        public NavigationLandmarks Landmarks => landmarks ?? (landmarks = new NavigationLandmarks(this));
+        // 同一邻接掩码区间内的直线捷径；保留原始边，因此不依赖 JPS 的剪枝假设。
+        internal int[] JumpTargets
+        {
+            get
+            {
+                if (jumpTargets != null) return jumpTargets;
+                jumpTargets = new int[Count * 8];
+                for (int edge = 0; edge < 8; edge++)
+                {
+                    int2 d = Direction(edge); int offset = d.y*Width+d.x;
+                    for (int n = 0; n < Count; n++)
+                    {
+                        int cell = offset > 0 ? Count-1-n : n;
+                        if ((Edges[cell] & (1 << edge)) == 0) { jumpTargets[cell*8+edge] = cell; continue; }
+                        int next = cell+offset;
+                        jumpTargets[cell*8+edge] = Edges[next] == Edges[cell] ? jumpTargets[next*8+edge] : next;
+                    }
+                }
+                return jumpTargets;
+            }
+        }
+        public long RuntimeIndexBytes => (landmarks?.PayloadBytes ?? 0) + (jumpTargets?.LongLength ?? 0) * sizeof(int);
         public int NodeCount => nodes.Length;
         public ObstacleNode Node(int index) => nodes[index];
         public int SpawnCell(int index) => spawnCells[index];

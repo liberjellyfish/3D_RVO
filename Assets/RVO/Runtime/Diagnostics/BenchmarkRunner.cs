@@ -55,6 +55,7 @@ namespace Rvo
             report.EstimatedNativePayloadBytes = n * (4L + 6 * 12L + 12 + 4 + 16L) + n * (long)k * 8;
             if (settings.Avoidance == AvoidanceAlgorithm.ORCA) report.EstimatedNativePayloadBytes += n * (long)k * 16;
             if (settings.NeighborSearch == NeighborSearchAlgorithm.SpatialHash) report.EstimatedNativePayloadBytes += n * 12L;
+            if (settings.NeighborSearch == NeighborSearchAlgorithm.KdTree) report.EstimatedNativePayloadBytes += n * 4L + (2L * n - 1) * 28L;
             if (settings.Avoidance == AvoidanceAlgorithm.VO || settings.Avoidance == AvoidanceAlgorithm.RVO)
                 report.EstimatedNativePayloadBytes += settings.Vo.AngleSamples * 8L;
             int cursor = 0;

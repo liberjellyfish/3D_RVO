@@ -219,7 +219,7 @@ namespace Rvo.Tests
                 settings.Avoidance == AvoidanceAlgorithm.VO ? new VoSolver2D() : new PassThroughSolver();
             return new SimulationWorld(settings, ScenarioSettings.Default, new SimulationModules(
                 new FixedScenario(positions, goals, ids, radii, speeds), new DirectGoalPreferredVelocity(),
-                settings.NeighborSearch == NeighborSearchAlgorithm.SpatialHash ? (INeighborSearch)new SpatialHashNeighborSearch() : new BruteForceNeighborSearch(), solver, new PlanarEulerIntegrator()));
+                NeighborSearchFactory.Create(settings.NeighborSearch), solver, new PlanarEulerIntegrator()));
         }
 
         private sealed class FixedScenario : StatelessModule, IScenarioInitializer

@@ -5,7 +5,7 @@ namespace Rvo
 {
     public enum SimulationDimension { PlanarXZ, Full3D }
     public enum AvoidanceAlgorithm { None, VO, RVO, ORCA }
-    public enum NeighborSearchAlgorithm { BruteForce, SpatialHash }
+    public enum NeighborSearchAlgorithm { BruteForce, SpatialHash, KdTree }
     public enum ExecutionBackend { Reference, JobsBurst }
     public enum SolveStatus { NotSolved, Success, Fallback, Infeasible, InvalidInput }
 

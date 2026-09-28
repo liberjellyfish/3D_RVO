@@ -1,5 +1,7 @@
 # Phase 2 首版实现与验证
 
+> 历史报告：对应 2026-09-28 的运行时刷新首版，不代表当前离线烘焙/预算寻路/Burst 实现。当前设计见 [PHASE2_PLAN.md](PHASE2_PLAN.md)，新测试结果见 [VERIFICATION_P2_OPTIMIZATION.md](VERIFICATION_P2_OPTIMIZATION.md)。
+
 日期：2026-09-28。Unity 6000.0.63f1；XZ 平面圆盘；未运行 100 / 1k / 10k 正式压力测试。
 
 ## 已交付

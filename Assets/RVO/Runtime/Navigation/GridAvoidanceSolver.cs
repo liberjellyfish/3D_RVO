@@ -16,11 +16,15 @@ namespace Rvo
         public int SafetyLimitedTicks { get; private set; }
         public long LastSafetyPairChecks { get; private set; }
         public int LastStaticTruncations { get; private set; }
+        public int LastLimitedAgents { get; private set; }
         private readonly GridNavigation navigation;
         private NativeArray<VelocityHalfPlane2D> constraints;
         private NativeArray<ObstacleNode> nodes;
         private NativeArray<float> limits;
+        private NativeArray<float> staticDistances;
         private NativeArray<int> pairChecks, droppedStatic;
+        private NativeArray<int> components;
+        private NativeArray<float> componentLimits;
         private NativeParallelMultiHashMap<int2,int> safetyBuckets;
         private float maxRadius, maxSpeed, safetyCellSize;
         private int stride;
@@ -32,11 +36,14 @@ namespace Rvo
             {
                 stride = maxNeighbors + navigation.Settings.MaxStaticConstraints + 4;
                 constraints = new NativeArray<VelocityHalfPlane2D>(checked(agents.Count * stride),Allocator.Persistent);
+                staticDistances = new NativeArray<float>(checked(agents.Count * navigation.Settings.MaxStaticConstraints),Allocator.Persistent);
                 nodes = new NativeArray<ObstacleNode>(navigation.Map.NodeCount,Allocator.Persistent);
                 for (int i = 0; i < nodes.Length; i++) nodes[i] = navigation.Map.Node(i);
                 limits = new NativeArray<float>(agents.Count,Allocator.Persistent);
                 pairChecks = new NativeArray<int>(agents.Count,Allocator.Persistent);
                 droppedStatic = new NativeArray<int>(agents.Count,Allocator.Persistent);
+                components = new NativeArray<int>(agents.Count,Allocator.Persistent);
+                componentLimits = new NativeArray<float>(agents.Count,Allocator.Persistent);
                 safetyBuckets = new NativeParallelMultiHashMap<int2,int>(agents.Count,Allocator.Persistent);
                 for (int i = 0; i < agents.Count; i++)
                 { maxRadius = math.max(maxRadius,agents.Parameters[i].Radius); maxSpeed = math.max(maxSpeed,agents.Parameters[i].MaxSpeed); }
@@ -54,11 +61,16 @@ namespace Rvo
                 MaxStatic = navigation.Settings.MaxStaticConstraints, Margin = navigation.Settings.SafetyMargin,
                 Horizon = math.max(context.DeltaTime,navigation.Settings.StaticTimeHorizon),
                 MapMin = navigation.Map.Min, MapMax = navigation.Map.Max, DroppedStatic = droppedStatic };
+            solve.StaticDistances = staticDistances;
             var build = new SafetyBuildJob { Agents = agents, Buckets = safetyBuckets, CellSize = safetyCellSize };
             var safety = new SafetyJob { Agents = agents, Velocities = motionOutput.Velocities, Nodes = nodes,
                 Buckets = safetyBuckets, CellSize = safetyCellSize, MaxRadius = maxRadius, MaxSpeed = maxSpeed,
                 DeltaTime = context.DeltaTime, Margin = navigation.Settings.SafetyMargin, Limits = limits, PairChecks = pairChecks,
                 MapMin = navigation.Map.Min, MapMax = navigation.Map.Max, BruteForce = context.Settings.Backend == ExecutionBackend.Reference };
+            var islands = new SafetyIslandsJob { Agents = agents, Buckets = safetyBuckets,
+                CellSize = safetyCellSize, MaxRadius = maxRadius, MaxSpeed = maxSpeed,
+                DeltaTime = context.DeltaTime, Parents = components, ComponentLimits = componentLimits,
+                Limits = limits, Output = motionOutput };
             if (context.Settings.Backend == ExecutionBackend.JobsBurst)
             {
                 JobHandle solved = default, built = default, checkedMotion = default;
@@ -77,19 +89,68 @@ namespace Rvo
                 for (int i = 0; i < agents.Count; i++) solve.Execute(i);
                 for (int i = 0; i < agents.Count; i++) safety.Execute(i);
             }
-            float scale = 1; LastSafetyPairChecks = 0; LastStaticTruncations = 0;
+            float scale = 1; LastSafetyPairChecks = 0; LastStaticTruncations = 0; LastLimitedAgents = 0;
             for (int i = 0; i < agents.Count; i++)
             { scale = math.min(scale,limits[i]); LastSafetyPairChecks += pairChecks[i]; LastStaticTruncations += droppedStatic[i]; }
             if (scale < 0) throw new InvalidOperationException("非法初始重叠或非有限运动数据，拒绝提交仿真步骤。");
             LastSafetyScale = scale;
             if (scale < 1)
             {
-                SafetyLimitedTicks++; var output = motionOutput;
-                // 所有速度采用同一安全时间前缀，保留所有相对轨迹，不能逐 Agent 独立停车。
-                for (int i = 0; i < agents.Count; i++)
-                { output.Velocities[i] *= scale; if (output.Status[i] == SolveStatus.Success) output.Status[i] = SolveStatus.Fallback; }
+                SafetyLimitedTicks++;
+                if (context.Settings.Backend == ExecutionBackend.JobsBurst) islands.Schedule().Complete();
+                else islands.Execute();
+                for (int i = 0; i < agents.Count; i++) if (componentLimits[components[i]] < 1) LastLimitedAgents++;
             }
             return default;
+        }
+
+        // 只在安全证书触发时构建本步相互作用连通分量。不同分量在任意 [0,1] 缩放下
+        // 均不可接触；分量内统一取时间前缀，保留相对轨迹，避免不安全的逐 agent 停车。
+        [BurstCompile]
+        private struct SafetyIslandsJob : IJob
+        {
+            [ReadOnly] public AgentReadView Agents;
+            [ReadOnly] public NativeParallelMultiHashMap<int2,int> Buckets;
+            [ReadOnly] public NativeArray<float> Limits;
+            public NativeArray<int> Parents;
+            public NativeArray<float> ComponentLimits;
+            public MotionOutput Output;
+            public float CellSize, MaxRadius, MaxSpeed, DeltaTime;
+            public void Execute()
+            {
+                for (int i = 0; i < Agents.Count; i++) { Parents[i] = i; ComponentLimits[i] = 1; }
+                for (int i = 0; i < Agents.Count; i++)
+                {
+                    float2 p = Agents.Positions[i].xz;
+                    float range = Agents.Parameters[i].Radius + MaxRadius + (Agents.Parameters[i].MaxSpeed + MaxSpeed) * DeltaTime + 0.002f;
+                    int2 lo = (int2)math.floor((p-range)/CellSize), hi = (int2)math.floor((p+range)/CellSize);
+                    for (int z = lo.y; z <= hi.y; z++) for (int x = lo.x; x <= hi.x; x++)
+                        if (Buckets.TryGetFirstValue(new int2(x,z),out int j,out var iterator))
+                            do
+                            {
+                                if (j >= i) continue;
+                                float reach = Agents.Parameters[i].Radius + Agents.Parameters[j].Radius +
+                                    (Agents.Parameters[i].MaxSpeed + Agents.Parameters[j].MaxSpeed) * DeltaTime + 0.002f;
+                                if (math.distancesq(p, Agents.Positions[j].xz) > reach*reach) continue;
+                                int a = Root(i), b = Root(j);
+                                if (a != b) Parents[math.max(a,b)] = math.min(a,b);
+                            } while (Buckets.TryGetNextValue(out j,ref iterator));
+                }
+                for (int i = 0; i < Agents.Count; i++)
+                { int root = Root(i); Parents[i] = root; ComponentLimits[root] = math.min(ComponentLimits[root], Limits[i]); }
+                for (int i = 0; i < Agents.Count; i++)
+                {
+                    float scale = ComponentLimits[Parents[i]];
+                    if (scale >= 1) continue;
+                    Output.Velocities[i] *= scale;
+                    if (Output.Status[i] == SolveStatus.Success) Output.Status[i] = SolveStatus.Fallback;
+                }
+            }
+            private int Root(int i)
+            {
+                while (Parents[i] != i) { Parents[i] = Parents[Parents[i]]; i = Parents[i]; }
+                return i;
+            }
         }
 
         [BurstCompile]
@@ -102,6 +163,7 @@ namespace Rvo
             [ReadOnly] public NativeArray<ObstacleNode> Nodes;
             public MotionOutput Output;
             [NativeDisableParallelForRestriction] public NativeArray<VelocityHalfPlane2D> Constraints;
+            [NativeDisableParallelForRestriction] public NativeArray<float> StaticDistances;
             public NativeArray<int> DroppedStatic;
             public int Stride, MaxStatic;
             public float Margin, Horizon;
@@ -118,12 +180,25 @@ namespace Rvo
                     float distanceSq = math.lengthsq(separation);
                     if (distanceSq > reach*reach) { index = node.Escape; continue; }
                     index++; if (node.Leaf == 0) continue;
-                    if (staticCount >= MaxStatic) { dropped++; continue; }
                     float gap = math.sqrt(distanceSq);
                     if (gap < 1e-7f) continue; // 接触边界交给全量扫掠安全层，禁止生成零法线。
-                    Constraints[start+count++] = new VelocityHalfPlane2D { Normal = separation/gap, Offset = -gap/Horizon, SourceId = -index };
-                    staticCount++;
+                    // BVH 遍历顺序不代表危险程度，预算内保留最近的静态平面。
+                    int insert = staticCount, distanceStart = i * MaxStatic;
+                    if (staticCount == MaxStatic) dropped++;
+                    while (insert > 0 && StaticDistances[distanceStart+insert-1] > distanceSq)
+                    {
+                        if (insert < MaxStatic)
+                        { StaticDistances[distanceStart+insert] = StaticDistances[distanceStart+insert-1]; Constraints[start+insert] = Constraints[start+insert-1]; }
+                        insert--;
+                    }
+                    if (insert < MaxStatic)
+                    {
+                        StaticDistances[distanceStart+insert] = distanceSq;
+                        Constraints[start+insert] = new VelocityHalfPlane2D { Normal = separation/gap, Offset = -gap/Horizon, SourceId = -index };
+                    }
+                    staticCount = math.min(MaxStatic, staticCount+1);
                 }
+                count = staticCount;
                 float2 low = position-MapMin-radius, high = MapMax-radius-position;
                 Constraints[start+count++] = new VelocityHalfPlane2D { Normal = new float2(1,0), Offset = -low.x/Horizon, SourceId = -1 };
                 Constraints[start+count++] = new VelocityHalfPlane2D { Normal = new float2(-1,0), Offset = -high.x/Horizon, SourceId = -1 };
@@ -137,7 +212,7 @@ namespace Rvo
                         Context.Settings.TimeHorizon,Context.DeltaTime,Agents.Ids[i],Agents.Ids[j],Context.Settings.Epsilon);
                 }
                 var status = PlanarVelocityOptimizer.Solve(new NativeSlice<VelocityHalfPlane2D>(Constraints,start,count),
-                    Preferred[i].xz,Agents.Parameters[i].MaxSpeed,Context.Settings.Epsilon,out float2 velocity);
+                    Preferred[i].xz,Agents.Parameters[i].MaxSpeed,Context.Settings.Epsilon,out float2 velocity,staticCount+4);
                 DroppedStatic[i] = dropped;
                 Output.Status[i] = dropped > 0 && status == SolveStatus.Success ? SolveStatus.Fallback : status;
                 Output.Velocities[i] = new float3(velocity.x,0,velocity.y);
@@ -213,10 +288,11 @@ namespace Rvo
             double2 p = (double2)a-(double2)b, d = ((double2)nextA-(double2)nextB)-p;
             double squared = math.lengthsq(p), guard = radius+0.001;
             if (squared < (double)radius*radius) return -1;
+            double aa = math.lengthsq(d), bb = math.dot(p,d);
+            // 接触余量内的静止/分离运动可安全继续，不能无条件返回 0 锁死整组。
+            if (aa < 1e-20 || bb >= 0) return 1;
             double c = squared-guard*guard;
             if (c <= 0) return 0;
-            double aa = math.lengthsq(d), bb = math.dot(p,d);
-            if (aa < 1e-20 || bb >= 0) return 1;
             double discriminant = bb*bb-aa*c;
             if (discriminant <= 0) return 1;
             double contact = c/(-bb+math.sqrt(discriminant)); // 稳定形式，避免两个近似大数相减。
@@ -228,8 +304,11 @@ namespace Rvo
             if (constraints.IsCreated) constraints.Dispose(); constraints = default;
             if (nodes.IsCreated) nodes.Dispose(); nodes = default;
             if (limits.IsCreated) limits.Dispose(); limits = default;
+            if (staticDistances.IsCreated) staticDistances.Dispose(); staticDistances = default;
             if (pairChecks.IsCreated) pairChecks.Dispose(); pairChecks = default;
             if (droppedStatic.IsCreated) droppedStatic.Dispose(); droppedStatic = default;
+            if (components.IsCreated) components.Dispose(); components = default;
+            if (componentLimits.IsCreated) componentLimits.Dispose(); componentLimits = default;
             if (safetyBuckets.IsCreated) safetyBuckets.Dispose(); safetyBuckets = default;
         }
     }

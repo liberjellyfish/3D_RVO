@@ -129,6 +129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1695584084}
   - component: {fileID: 1695584083}
+  - component: {fileID: 1695584085}
   m_Layer: 0
   m_Name: Navigation Camera
   m_TagString: MainCamera
@@ -171,7 +172,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 16
+  orthographic size: 300
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
@@ -202,6 +203,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1695584085
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1695584082}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a790041252c64b64f920d6d57e8e68dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2037797323
 GameObject:
   m_ObjectHideFlags: 0
@@ -237,6 +250,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Material: {fileID: 2100000, guid: f2f45fb97ba8a9c46befa63886f9c44d, type: 2}
   ShowPaths: 1
+  MaxDisplayedPaths: 32
+  SelectedAgent: 0
 --- !u!114 &2037797325
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -321,9 +336,10 @@ MonoBehaviour:
   DemoProfiles: []
   Paused: 0
   ShowControls: 1
-  CollectQuality: 1
+  CollectQuality: 0
   MaxCatchUpSteps: 8
   SelectedAgent: 0
+  AgentTier: 0
   MapPresenter: {fileID: 2037797324}
   HudFontSize: 17
 --- !u!4 &2037797329

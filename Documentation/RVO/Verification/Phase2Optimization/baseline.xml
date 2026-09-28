@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="3" result="Passed" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-28 17:44:24Z" end-time="2026-09-28 17:44:30Z" duration="5.5977291">
+  <test-suite type="TestSuite" id="1000" name="3D_RVO" fullname="3D_RVO" runstate="Runnable" testcasecount="68" result="Passed" start-time="2026-09-28 17:44:24Z" end-time="2026-09-28 17:44:30Z" duration="5.597729" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1089" name="Rvo.Tests.EditMode.dll" fullname="D:/unityhub/tries/3D_RVO/.utmp/Phase2Compile/Library/ScriptAssemblies/Rvo.Tests.EditMode.dll" runstate="Runnable" testcasecount="68" result="Passed" start-time="2026-09-28 17:44:24Z" end-time="2026-09-28 17:44:30Z" duration="5.591469" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="25632" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1090" name="Rvo" fullname="Rvo" runstate="Runnable" testcasecount="68" result="Passed" start-time="2026-09-28 17:44:24Z" end-time="2026-09-28 17:44:30Z" duration="5.590337" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1091" name="Tests" fullname="Rvo.Tests" runstate="Runnable" testcasecount="68" result="Passed" start-time="2026-09-28 17:44:24Z" end-time="2026-09-28 17:44:30Z" duration="5.589347" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1084" name="Phase2ThroughputTests" fullname="Rvo.Tests.Phase2ThroughputTests" classname="Rvo.Tests.Phase2ThroughputTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-28 17:44:24Z" end-time="2026-09-28 17:44:30Z" duration="5.587424" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="ParameterizedMethod" id="1088" name="RecordLargeMapThroughput" fullname="Rvo.Tests.Phase2ThroughputTests.RecordLargeMapThroughput" classname="Rvo.Tests.Phase2ThroughputTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-28 17:44:24Z" end-time="2026-09-28 17:44:30Z" duration="5.584019" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1085" name="RecordLargeMapThroughput(16)" fullname="Rvo.Tests.Phase2ThroughputTests.RecordLargeMapThroughput(16)" methodname="RecordLargeMapThroughput" classname="Rvo.Tests.Phase2ThroughputTests" runstate="Runnable" seed="1656794288" result="Passed" start-time="2026-09-28 17:44:24Z" end-time="2026-09-28 17:44:25Z" duration="0.592681" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[N=16, steady P50=0.429ms, P95=2.214ms (Editor, excluding quality checks)
+]]></output>
+              </test-case>
+              <test-case id="1086" name="RecordLargeMapThroughput(256)" fullname="Rvo.Tests.Phase2ThroughputTests.RecordLargeMapThroughput(256)" methodname="RecordLargeMapThroughput" classname="Rvo.Tests.Phase2ThroughputTests" runstate="Runnable" seed="2115768279" result="Passed" start-time="2026-09-28 17:44:25Z" end-time="2026-09-28 17:44:27Z" duration="1.670438" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[N=256, steady P50=3.238ms, P95=4.632ms (Editor, excluding quality checks)
+]]></output>
+              </test-case>
+              <test-case id="1087" name="RecordLargeMapThroughput(1024)" fullname="Rvo.Tests.Phase2ThroughputTests.RecordLargeMapThroughput(1024)" methodname="RecordLargeMapThroughput" classname="Rvo.Tests.Phase2ThroughputTests" runstate="Runnable" seed="268284" result="Passed" start-time="2026-09-28 17:44:27Z" end-time="2026-09-28 17:44:30Z" duration="3.311966" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[N=1024, steady P50=3.532ms, P95=4.817ms (Editor, excluding quality checks)
+Saving results to: C:/Users/20505/AppData/LocalLow/DefaultCompany/3D_RVO\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

@@ -14,6 +14,11 @@ namespace Rvo
         public uint Seed;
         public float SafetyMargin, StaticTimeHorizon;
         public int PathExpansionsPerTick, PathRequestsPerTick, MaxStaticConstraints;
+        // 0 兼容旧资产；有效默认值为 4 / 1.5。1 保留精确 A* 对照。
+        public int PathSearchSlots;
+        public float PathHeuristicWeight;
+        public int EffectiveSearchSlots => PathSearchSlots == 0 ? 4 : PathSearchSlots;
+        public float EffectiveHeuristicWeight => PathHeuristicWeight == 0 ? 1.5f : PathHeuristicWeight;
         public static NavigationSettings Default => new NavigationSettings
         {
             Width = 512, Height = 512, CellSize = 1, ObstacleCount = 450,
@@ -30,7 +35,9 @@ namespace Rvo
                 !math.isfinite(SafetyMargin) || SafetyMargin < 0.001f ||
                 !math.isfinite(StaticTimeHorizon) || StaticTimeHorizon <= 0 ||
                 !math.isfinite(radius) || radius <= 0 || radius + SafetyMargin >= math.min(Width, Height) * CellSize * 0.5f ||
-                PathExpansionsPerTick < 1 || PathRequestsPerTick < 1 || MaxStaticConstraints < 4 || MaxStaticConstraints > 256)
+                PathExpansionsPerTick < 1 || PathRequestsPerTick < 1 || MaxStaticConstraints < 4 || MaxStaticConstraints > 256 ||
+                PathSearchSlots < 0 || PathSearchSlots > 16 || !math.isfinite(PathHeuristicWeight) ||
+                (PathHeuristicWeight != 0 && (PathHeuristicWeight < 1 || PathHeuristicWeight > 2)))
                 throw new ArgumentException("导航参数无效：地图 4..512，半径须能放入地图，障碍尺寸及搜索预算须为正。");
         }
         // 只有影响地图内容/净空的参数进入签名；换档、速度及寻路预算不需要重新烘焙。

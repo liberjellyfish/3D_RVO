@@ -17,27 +17,27 @@ MonoBehaviour:
     Avoidance: 3
     NeighborSearch: 1
     AgentCount: 16
-    MaxNeighbors: 15
+    MaxNeighbors: 48
     FixedDeltaTime: 0.033333335
     PlaneHeight: 0
-    NeighborDistance: 24
+    NeighborDistance: 56
     TimeHorizon: 2
-    CellSize: 5
+    CellSize: 24
     Epsilon: 0.00001
     Vo:
       AngleSamples: 72
       SpeedSamples: 5
-      SafetyMargin: 0.02
+      SafetyMargin: 0.08
     Backend: 1
     MeasureStages: 0
     PreferredSideBias: 0.08
   Scenario:
     Kind: 5
     Seed: 1
-    Extent: 12
-    Radius: 0.35
-    MaxSpeed: 2
-    ArrivalDistance: 0.15
+    Extent: 256
+    Radius: 2.5
+    MaxSpeed: 12
+    ArrivalDistance: 0.5
   Benchmark:
     WarmupTicks: 300
     MeasuredTicks: 1800
@@ -46,17 +46,17 @@ MonoBehaviour:
     CollectQualityMetrics: 1
   Navigation:
     Enabled: 1
-    Width: 32
-    Height: 24
+    Width: 512
+    Height: 512
     CellSize: 1
-    ObstacleCount: 55
+    ObstacleCount: 450
     ObstacleMinSize: 4
     ObstacleMaxSize: 16
-    Seed: 8
-    SafetyMargin: 0.04
+    Seed: 7
+    SafetyMargin: 0.08
     StaticTimeHorizon: 0.5
     PathExpansionsPerTick: 4096
     PathRequestsPerTick: 16
     MaxStaticConstraints: 48
-  BakedMap: {fileID: 11400000, guid: bcf1966ec24fa974e864508edbaae5c1, type: 2}
+  BakedMap: {fileID: 11400000, guid: 8555a851225015e42b9c1f8c44e3e4fe, type: 2}
   AgentCountTiers: {x: 16, y: 256, z: 1024}

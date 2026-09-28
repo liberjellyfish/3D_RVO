@@ -1,6 +1,6 @@
 # Phase 1 架构与 Phase 2 导航扩展
 
-Phase 2 已通过 `Phase2ModuleFactory` 接入原有 World：`Navigation/NavigationGrid` 管占据、保守净空和连通域，`GridPathfinder` 管堆优化 A*，`GridNavigation` 管版本/刷新/扁平路径与 Preferred，`GridAvoidanceSolver` 管动态 ORCA、静态完整责任支撑约束及整步安全证书。Unity 的 `GridMapPresenter` 只读取地图和路径。详细约定见 [Phase 2 规划](PHASE2_PLAN.md)。下文 Phase 1 算法约定仍适用于原有无地图模式。
+Phase 2 通过 `Phase2ModuleFactory` 接入原有 World：`NavigationGrid` 管离线烘焙占据、净空、连通域、静态 BVH 和共享 ALT/跳跃索引；`GridPathfinder` 管可恢复加权 A*；`GridNavigation` 管预算队列、四搜索上下文、池化路径与 Preferred；`GridAvoidanceSolver` 管动态 ORCA、静态硬约束和局部连通分量安全证书。`NeighborSearchFactory` 在 BruteForce / SpatialHash / KdTree 间选择。地图在一次运行中不可变。Unity 的 `GridMapPresenter` 只读取地图和路径。详细约定见 [Phase 2 设计](PHASE2_PLAN.md)。下文 Phase 1 算法约定仍适用于原有无地图模式。
 
 ## 1. 范围与坐标
 
@@ -152,4 +152,4 @@ Jobs / Burst 接入采用 Unity 官方 [Job System](https://docs.unity3d.com/600
 - 到达后的 Agent 仍承担对称互惠责任，可能被移动离开目标；没有优先级、全局路径或死锁消解系统。未到达且连续低于 0.05 m/s 达 2 秒才计入 stalled，未在 900 Tick 内到达不自动算死锁。
 - BenchmarkRunner 显式调用，纯仿真计时与独立 O(N²) 质量检查分离。总计时包含完成 Job 的等待；逐阶段计时会增加同步开销。GC 字段仅覆盖 Step 主线程；Native 字段是有效载荷估算，不是分配器峰值。
 
-Phase 2 的静态障碍采用格子方块的保守支撑平面，不等价于完整 RVO2 墙段/凸角约束。其求解后的统一时间缩放经过独立全 pair 扫掠复核，且仍在求解器内完成；积分器不二次改速。该集中式安全层成本 O(N²)，有退让和停滞风险。完整 XYZ 求解尚未实现。
+Phase 2 静态障碍采用合并格子矩形的保守支撑平面，不等价于完整 RVO2 墙段/凸角约束。动态无解时仅松弛动态约束；独立安全层用静态 BVH 和动态扫掠哈希（Reference 为全 pair）计算安全前缀，触发后在本步潜在相互作用连通分量内统一缩放。不同分量互不拖停；积分器不二次改速。密集分量仍有退让和停滞风险。查询/路径跟随/组合求解/安全层/积分支持 JobsBurst，A* 搜索与路径服务管理为主线程。完整 XYZ 求解尚未实现。

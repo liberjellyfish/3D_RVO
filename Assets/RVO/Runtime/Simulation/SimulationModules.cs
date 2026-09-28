@@ -58,8 +58,7 @@ namespace Rvo
             if (settings.Dimension != SimulationDimension.PlanarXZ)
                 throw new NotSupportedException("Full3D is reserved for Phase 3; no planar fallback is allowed.");
 
-            INeighborSearch neighbors = settings.NeighborSearch == NeighborSearchAlgorithm.BruteForce
-                ? (INeighborSearch)new BruteForceNeighborSearch() : new SpatialHashNeighborSearch();
+            INeighborSearch neighbors = NeighborSearchFactory.Create(settings.NeighborSearch);
             IAvoidanceSolver solver;
             switch (settings.Avoidance)
             {

@@ -1,20 +1,20 @@
 # Unity 6 RVO — Phase 1 避障 + Phase 2 网格导航
 
-已实现 **None / VO / RVO / ORCA、BruteForce / SpatialHash、Reference / JobsBurst**。新增 Phase 2：单层网格、二叉堆 A*、路径跟随、随机静态障碍刷新、组合避障和整步扫掠安全检查。活动空间为 float3 存储的 XZ 平面圆盘；不使用 Rigidbody/Collider 的位置纠正。
+已实现 **None / VO / RVO / ORCA、BruteForce / SpatialHash / KdTree、Reference / JobsBurst**。Phase 2 使用离线烘焙地图、ALT 加权 A* 与直线捷径、预算调度、路径跟随、静态 BVH、ORCA 和局部扫掠安全证书。数据为 float3，活动空间仍为 XZ 圆盘，不使用 Rigidbody/Collider 位置纠正。
 
 ## Phase 2 操作
 
-1. 打开 `Assets/RVO/Demo/Phase2_Navigation.unity`，点击 Play。默认 32×24 网格、55 个随机占据格、16 个 Agent、ORCA。灰块是障碍，彩色线是路径，十字是目标。
-2. 每 240 Tick（8 秒）刷新一批障碍；`Refresh obstacles` 请求下一 Tick 刷新，暂停时按 Step 提交。刷新保留当前位置和目标，并保证静态路径存在。
-3. `Next map seed` 使用下一个 seed 重置；`Reset` 保留当前 seed 和运行时覆盖，重现同一初态。配置资产不被修改。
-4. 查看 Map version、Replans、No path、Safety scale、Limited ticks、Arrived 和 Collision ticks。安全缩放小于 1 表示本步触发集中式退让，不能将其当作原始 ORCA 成功解。
-5. `Show paths and goals` 可隐藏路径；选择 RVO 对象查看选中 Agent 的路径、请求号与状态。字号默认 17，可在 Inspector 的 Hud Font Size 调整，面板过长可滚动。
-6. 导航和组合求解目前是 Reference；Backend 按钮切换邻居查询和积分的 Reference/JobsBurst。Phase 2 固定使用 ORCA；原四算法对照仍在 Phase 1 演示中。
-7. 场景缺失时使用 `Tools > RVO > Create Phase 2 Navigation Demo`；菜单只创建缺少的资源。测试运行 `Phase2NavigationTests` 和 `NavigationDriverTests`。
+1. 打开 `Assets/RVO/Demo/Phase2_Navigation.unity`，点击 Play。当前地图为 512×512，450 个随机矩形（4..16 格），Agent 半径 2.5、速度 12，档位为 16 / 256 / 1024。
+2. 地图运行期间保持静态。修改 Profile 的地图、半径或安全余量后，用 `Tools > RVO > Upgrade Phase 2 Demo to 512 and Bake` 恢复标准演示并重烘焙；自定义参数用 Profile Inspector 的 Bake 操作。前者会重置演示参数，请保留自定义配置副本。
+3. HUD 的档位按钮、Reset、Query、Backend 都重新创建世界，复用相同烘焙地图。Query 循环 BruteForce → SpatialHash → KdTree；默认仍为 SpatialHash，KDTree 可用于对照。切换不会写回 Profile。
+4. `Pending` 是正在排队/计算路径，`Ready` 是已有可跟随路径，`No path` 是失败状态。直达目标当 Tick 启动；复杂路径默认四上下文轮转，每 Tick 4096 个节点、16 个排队请求。`PathHeuristicWeight=0` 使用默认 1.5，设为 1 作精确最短路对照。
+5. `Safety min scale` 是本步最小局部退让比例，`Limited agents` 是实际受影响数量。局部冲突不会无条件减速整个场景。接触余量内静止/分离不再触发零比例。
+6. 路径显示有数量上限并包含选中 agent；可隐藏路径、缩放/平移相机或聚焦选中 agent。大规模性能观察关闭 `Quality checks (O(N²))`；它是独立全量诊断，不是关闭生产安全检查。
+7. 运行 `Phase2NavigationTests`、`Phase2OptimizationTests`、`Phase2ThroughputTests` 和 PlayMode 的 `NavigationDriverTests`。完整回归保留 Phase 1 测试。
 
-详细设计见 [Phase 2 规划](PHASE2_PLAN.md)，实际结果见 [Phase 2 验证](VERIFICATION_P2.md)。第一版采用保守方形障碍膨胀；窄路、目标堵塞可能等待，任意拥堵的最终到达性尚未保证。旧 Benchmark 菜单只接受 Phase 1 配置，避免错误套用无地图报告。
+本轮实现与内存/性能权衡见 [Phase 2 设计](PHASE2_PLAN.md)，实际结果见 [优化验证报告](VERIFICATION_P2_OPTIMIZATION.md)。[首版报告](VERIFICATION_P2.md) 仅作历史记录，其运行时刷新和主线程组合求解描述已过时。
 
-**正式 100 / 1k / 10k 压测未执行，Phase 1 整体规模验收与冻结待办。** 本轮结果、残余碰撞和限制见 [验证报告](VERIFICATION_P1.md)。旧 [P1.3 报告](VERIFICATION_P13.md) 是历史结果，不能与更新后的采样/Burst 轨迹混作同一次测量。
+当前没有任意拥堵最终到达保证；窄道预约、目标占道管理、完整墙段 ORCA 与 Player 正式性能矩阵仍需继续。Phase 1 的正式 100 / 1k / 10k 验收不由本轮 Editor 对照替代。
 
 ## Unity 操作步骤
 

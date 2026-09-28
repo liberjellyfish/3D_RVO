@@ -16,7 +16,7 @@ namespace Rvo
     /// <summary>只读烘焙地图 + 有预算的路径队列；一次运行中绝不刷新障碍。</summary>
     public sealed class GridNavigation : IPreferredVelocityProvider
     {
-        public string Name => "Budgeted A* and path following";
+        public string Name => "Time-sliced weighted A* and visible-goal fast path";
         public bool IsImplemented => true;
         public NavigationGrid Map { get; }
         public NavigationSettings Settings { get; }
@@ -24,16 +24,22 @@ namespace Rvo
         public int NoPathCount { get; private set; }
         public int PendingCount { get; private set; }
         public int ArrivedCount { get; private set; }
+        public int ReadyCount { get; private set; }
+        public int LastDirectPaths { get; private set; }
         public int LastExpandedNodes { get; private set; }
         public long TotalExpandedNodes { get; private set; }
         public long PathCapacityBytes { get; private set; }
-        private readonly GridPathfinder pathfinder;
+        private readonly GridPathfinder[] searches;
+        private readonly int[] active;
+        private readonly bool[] searching;
         private readonly GridPathInfo[] paths;
         private readonly float2[][] waypoints;
         private readonly float2[] scratch;
+        private readonly NavigationLandmarks landmarks;
+        private readonly GridPathFollower follower;
         private readonly int[] queue;
         private readonly bool[] queued;
-        private int head, tail, queueCount, active = -1, requestId;
+        private int head, tail, queueCount, nextSlot, requestId;
         private bool disposed;
         public GridPathInfo Path(int agent) => paths[agent];
         public float2 Waypoint(int agent, int point) => waypoints[agent][point];
@@ -46,80 +52,99 @@ namespace Rvo
                 math.abs(Map.ClearanceRadius - radius - settings.SafetyMargin) > 1e-5f) throw new ArgumentException("烘焙地图尺寸或净空不匹配。");
             paths = new GridPathInfo[count]; waypoints = new float2[count][];
             queue = new int[count]; queued = new bool[count]; scratch = new float2[Map.Count + 2];
-            pathfinder = new GridPathfinder(Map.Count);
+            int slots = math.min(count, settings.EffectiveSearchSlots);
+            searches = new GridPathfinder[slots]; active = new int[slots]; searching = new bool[count];
+            for (int slot = 0; slot < slots; slot++) { searches[slot] = new GridPathfinder(Map.Count); active[slot] = -1; }
+            landmarks = Map.Landmarks;
+            _ = Map.JumpTargets;
+            follower = new GridPathFollower(Map,count);
         }
         private void Request(int i, in AgentReadView agents)
         {
-            if (queued[i] || active == i) return;
+            // 目标改变时更新排队请求，并取消旧搜索；不可提交旧目标的结果。
+            if (searching[i])
+                for (int slot = 0; slot < active.Length; slot++) if (active[slot] == i)
+                { active[slot] = -1; searching[i] = false; break; }
             var path = paths[i]; path.AgentId = agents.Ids[i]; path.RequestId = ++requestId;
             path.MapVersion = Map.Version; path.Goal = agents.Goals[i].xz; path.Status = GridPathStatus.Pending;
-            path.Count = 0; paths[i] = path;
-            queued[i] = true; queue[tail] = i; tail = (tail + 1) % queue.Length; queueCount++; ReplanCount++;
+            path.Count = 0; path.Cursor = 1; ReplanCount++;
+            if (Map.SegmentClear(agents.Positions[i].xz, path.Goal, Map.ClearanceRadius))
+            {
+                scratch[0] = agents.Positions[i].xz; scratch[1] = path.Goal;
+                path.Count = 2; path.Status = GridPathStatus.Ready; StorePath(i, 2); LastDirectPaths++;
+            }
+            else if (!queued[i])
+            { queued[i] = true; queue[tail] = i; tail = (tail + 1) % queue.Length; queueCount++; }
+            paths[i] = path;
+        }
+        private void StorePath(int i, int count)
+        {
+            if (waypoints[i] == null || waypoints[i].Length < count)
+            {
+                if (waypoints[i] != null) { PathCapacityBytes -= waypoints[i].Length * 8L; ArrayPool<float2>.Shared.Return(waypoints[i]); }
+                waypoints[i] = ArrayPool<float2>.Shared.Rent(count); PathCapacityBytes += waypoints[i].Length * 8L;
+            }
+            Array.Copy(scratch, waypoints[i], count);
         }
         public JobHandle Schedule(in StepContext context, in AgentReadView agents, NativeArray<float3> preferred, JobHandle dependency)
         {
             dependency.Complete(); if (disposed) throw new ObjectDisposedException(nameof(GridNavigation));
+            LastDirectPaths = 0;
             for (int i = 0; i < agents.Count; i++)
             {
                 var path = paths[i]; float2 position = agents.Positions[i].xz;
                 if (path.RequestId == 0 || math.any(path.Goal != agents.Goals[i].xz) ||
-                    (path.Status == GridPathStatus.Arrived && math.distance(position, path.Goal) > agents.Parameters[i].ArrivalDistance) ||
-                    (path.Status == GridPathStatus.Ready && !Map.SegmentClear(position, Waypoint(i,path.Cursor), Map.ClearanceRadius))) Request(i, agents);
+                    (path.Status == GridPathStatus.Arrived && math.distance(position, path.Goal) > agents.Parameters[i].ArrivalDistance)) Request(i, agents);
             }
-            LastExpandedNodes = 0; int completed = 0;
+            LastExpandedNodes = 0; int completed = 0, idleSlots = 0;
             while (LastExpandedNodes < Settings.PathExpansionsPerTick && completed < Settings.PathRequestsPerTick)
             {
-                if (active < 0)
+                int slot = nextSlot; nextSlot = (nextSlot + 1) % active.Length;
+                if (active[slot] < 0)
                 {
-                    if (queueCount == 0) break;
-                    active = queue[head]; head = (head + 1) % queue.Length; queueCount--; queued[active] = false;
-                    pathfinder.Begin(Map, agents.Positions[active].xz, paths[active].Goal);
+                    while (queueCount > 0)
+                    {
+                        int i = queue[head]; head = (head + 1) % queue.Length; queueCount--; queued[i] = false;
+                        if (paths[i].Status != GridPathStatus.Pending) continue;
+                        active[slot] = i; searching[i] = true;
+                        searches[slot].Begin(Map, agents.Positions[i].xz, paths[i].Goal, true, Settings.EffectiveHeuristicWeight, landmarks);
+                        break;
+                    }
+                    if (active[slot] < 0) { if (++idleSlots >= active.Length) break; continue; }
                 }
-                LastExpandedNodes += pathfinder.Advance(Settings.PathExpansionsPerTick - LastExpandedNodes);
-                if (pathfinder.Status == GridPathStatus.Pending) break;
-                var path = paths[active]; path.Status = pathfinder.Status; path.Cursor = 1;
+                idleSlots = 0;
+                int agent = active[slot]; var pathfinder = searches[slot];
+                LastExpandedNodes += pathfinder.Advance(math.min(256, Settings.PathExpansionsPerTick - LastExpandedNodes));
+                if (pathfinder.Status == GridPathStatus.Pending) continue;
+                var path = paths[agent]; path.Status = pathfinder.Status; path.Cursor = 1;
                 path.Count = pathfinder.CopyPath(scratch, 0, true);
                 if (path.Count > 0)
                 {
-                    // 按实际平滑路径租借容量，避免 N * 262144 的灾难性预分配。
-                    if (waypoints[active] == null || waypoints[active].Length < path.Count)
-                    {
-                        if (waypoints[active] != null) { PathCapacityBytes -= waypoints[active].Length * 8L; ArrayPool<float2>.Shared.Return(waypoints[active]); }
-                        waypoints[active] = ArrayPool<float2>.Shared.Rent(path.Count); PathCapacityBytes += waypoints[active].Length * 8L;
-                    }
-                    Array.Copy(scratch, waypoints[active], path.Count);
-                    if (!Map.SegmentClear(agents.Positions[active].xz, Waypoint(active, 1), Map.ClearanceRadius))
+                    StorePath(agent, path.Count);
+                    if (!Map.SegmentClear(agents.Positions[agent].xz, Waypoint(agent, 1), Map.ClearanceRadius))
                     { path.RequestId = 0; path.Status = GridPathStatus.Pending; }
                 }
-                paths[active] = path; active = -1; completed++;
+                paths[agent] = path; active[slot] = -1; searching[agent] = false; completed++;
             }
-            TotalExpandedNodes += LastExpandedNodes; NoPathCount = PendingCount = ArrivedCount = 0;
+            TotalExpandedNodes += LastExpandedNodes; NoPathCount = PendingCount = ArrivedCount = ReadyCount = 0;
+            follower.Execute(context,agents,preferred,Map,Settings,paths,waypoints);
             for (int i = 0; i < agents.Count; i++)
             {
-                float2 position = agents.Positions[i].xz, goal = agents.Goals[i].xz;
-                var parameters = agents.Parameters[i]; var path = paths[i]; preferred[i] = float3.zero;
-                if (math.distance(position, goal) <= parameters.ArrivalDistance)
-                { if (!queued[i] && active != i) path.Status = GridPathStatus.Arrived; ArrivedCount++; paths[i] = path; continue; }
+                var path = paths[i]; int advance = follower.Advance(i);
+                if (advance == -2)
+                { if (!queued[i] && !searching[i]) path.Status = GridPathStatus.Arrived; ArrivedCount++; paths[i] = path; continue; }
+                if (advance == -1)
+                { Request(i,agents); if (paths[i].Status == GridPathStatus.Pending) PendingCount++; else ReadyCount++; continue; }
                 if (path.Status != GridPathStatus.Ready)
                 { if (path.Status == GridPathStatus.Pending) PendingCount++; else NoPathCount++; continue; }
-                if (!Map.SegmentClear(position, Waypoint(i,path.Cursor), Map.ClearanceRadius))
-                { Request(i, agents); PendingCount++; continue; }
-                while (path.Cursor < path.Count - 1 && math.distance(position, Waypoint(i,path.Cursor)) < math.max(Map.CellSize * 0.15f, parameters.Radius * 0.25f)) path.Cursor++;
-                // 路径已在规划时拉直，每步只前瞻至多四个拐点，避免长路径反复做全长射线。
-                for (int point = math.min(path.Count - 1, path.Cursor + 4); point > path.Cursor; point--)
-                    if (Map.SegmentClear(position, Waypoint(i,point), Map.ClearanceRadius)) { path.Cursor = point; break; }
-                float2 delta = Waypoint(i,path.Cursor) - position;
-                float speed = math.min(parameters.MaxSpeed, math.length(delta) / context.DeltaTime);
-                float2 direction = math.normalizesafe(delta);
-                float bias = context.Settings.PreferredSideBias * math.min(1, math.distance(position,goal) / (parameters.Radius * 4));
-                float2 velocity = math.normalizesafe(direction + bias * new float2(-direction.y,direction.x)) * speed;
-                preferred[i] = new float3(velocity.x,0,velocity.y); paths[i] = path;
+                path.Cursor += advance; ReadyCount++; paths[i] = path;
             }
             return default;
         }
         public void Dispose()
         {
             if (disposed) return; disposed = true;
+            follower?.Dispose();
             for (int i = 0; i < waypoints.Length; i++) if (waypoints[i] != null)
             { ArrayPool<float2>.Shared.Return(waypoints[i]); waypoints[i] = null; }
             PathCapacityBytes = 0;
@@ -188,8 +213,7 @@ namespace Rvo
                 throw new NotSupportedException("Phase 2 需要 PlanarXZ + ORCA。");
             navigation = new GridNavigation(navigationSettings,settings.AgentCount,scenario.Radius,bakedMap);
             solver = new GridAvoidanceSolver(navigation);
-            INeighborSearch neighbors = settings.NeighborSearch == NeighborSearchAlgorithm.BruteForce
-                ? (INeighborSearch)new BruteForceNeighborSearch() : new SpatialHashNeighborSearch();
+            INeighborSearch neighbors = NeighborSearchFactory.Create(settings.NeighborSearch);
             return new SimulationModules(new GridScenarioInitializer(bakedMap),navigation,neighbors,solver,new PlanarEulerIntegrator());
         }
     }

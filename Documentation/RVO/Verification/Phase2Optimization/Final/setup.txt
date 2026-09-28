@@ -1,0 +1,1 @@
+Cold world/landmarks setup excluding map bake: 152 ms
