@@ -29,6 +29,24 @@ namespace Rvo.Editor
             Handles.DrawWireDisc(position, Vector3.up, agents.Parameters[index].Radius);
             Handles.DrawWireDisc((Vector3)agents.Goals[index], Vector3.up, 0.3f);
             Handles.DrawDottedLine(position, (Vector3)agents.Goals[index], 4f);
+            if (driver.Navigation != null)
+            {
+                var path = driver.Navigation.Path(index);
+                Handles.color = Color.green;
+                Vector3 previous = position;
+                if (path.Status == GridPathStatus.Ready)
+                    for (int point = path.Cursor; point < path.Count; point++)
+                    {
+                        float2 waypoint = driver.Navigation.Waypoint(index, point);
+                        Vector3 next = new Vector3(waypoint.x, position.y, waypoint.y);
+                        Handles.DrawLine(previous, next); previous = next;
+                    }
+                Arrow(position, (Vector3)agents.Velocities[index], Color.yellow);
+                Handles.Label(position + Vector3.forward,
+                    $"Agent {agents.Ids[index]} | {path.Status} | map {path.MapVersion}\nRequest {path.RequestId} | safety scale {driver.NavigationSolver.LastSafetyScale:F3}");
+                // 组合求解器使用独立约束 scratch，不能读取 Phase 1 的 N*K 调试视图。
+                return;
+            }
             if (world.Tick == 0) return;
             var step = world.DebugSnapshot;
             int start = index * step.Neighbors.MaxNeighbors;

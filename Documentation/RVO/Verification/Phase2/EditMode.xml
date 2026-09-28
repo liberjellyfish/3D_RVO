@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="9" result="Passed" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-28 09:25:18Z" end-time="2026-09-28 09:25:30Z" duration="12.6864903">
+  <test-suite type="TestSuite" id="1000" name="3D_RVO" fullname="3D_RVO" runstate="Runnable" testcasecount="65" result="Passed" start-time="2026-09-28 09:25:18Z" end-time="2026-09-28 09:25:30Z" duration="12.686490" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1083" name="Rvo.Tests.EditMode.dll" fullname="D:/unityhub/tries/3D_RVO/Library/ScriptAssemblies/Rvo.Tests.EditMode.dll" runstate="Runnable" testcasecount="65" result="Passed" start-time="2026-09-28 09:25:18Z" end-time="2026-09-28 09:25:30Z" duration="12.680653" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="28064" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1084" name="Rvo" fullname="Rvo" runstate="Runnable" testcasecount="65" result="Passed" start-time="2026-09-28 09:25:18Z" end-time="2026-09-28 09:25:30Z" duration="12.679747" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1085" name="Tests" fullname="Rvo.Tests" runstate="Runnable" testcasecount="65" result="Passed" start-time="2026-09-28 09:25:18Z" end-time="2026-09-28 09:25:30Z" duration="12.678977" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1072" name="Phase2NavigationTests" fullname="Rvo.Tests.Phase2NavigationTests" classname="Rvo.Tests.Phase2NavigationTests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-09-28 09:25:18Z" end-time="2026-09-28 09:25:30Z" duration="12.677592" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1074" name="AStarMatchesIndependentDijkstraAndReportsInvalidOrDisconnectedEndpoints" fullname="Rvo.Tests.Phase2NavigationTests.AStarMatchesIndependentDijkstraAndReportsInvalidOrDisconnectedEndpoints" methodname="AStarMatchesIndependentDijkstraAndReportsInvalidOrDisconnectedEndpoints" classname="Rvo.Tests.Phase2NavigationTests" runstate="Runnable" seed="1056151191" result="Passed" start-time="2026-09-28 09:25:18Z" end-time="2026-09-28 09:25:18Z" duration="0.028157" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-suite type="ParameterizedMethod" id="1079" name="CrowdReplansAcrossRefreshesWithoutSweptCollisions" fullname="Rvo.Tests.Phase2NavigationTests.CrowdReplansAcrossRefreshesWithoutSweptCollisions" classname="Rvo.Tests.Phase2NavigationTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-28 09:25:18Z" end-time="2026-09-28 09:25:30Z" duration="12.593560" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1075" name="CrowdReplansAcrossRefreshesWithoutSweptCollisions(1,Reference)" fullname="Rvo.Tests.Phase2NavigationTests.CrowdReplansAcrossRefreshesWithoutSweptCollisions(1,Reference)" methodname="CrowdReplansAcrossRefreshesWithoutSweptCollisions" classname="Rvo.Tests.Phase2NavigationTests" runstate="Runnable" seed="609196510" result="Passed" start-time="2026-09-28 09:25:18Z" end-time="2026-09-28 09:25:21Z" duration="3.335307" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[seed=1 backend=Reference arrived=16/16 map=6 replans=152 safetyTicks=0
+]]></output>
+              </test-case>
+              <test-case id="1076" name="CrowdReplansAcrossRefreshesWithoutSweptCollisions(7,Reference)" fullname="Rvo.Tests.Phase2NavigationTests.CrowdReplansAcrossRefreshesWithoutSweptCollisions(7,Reference)" methodname="CrowdReplansAcrossRefreshesWithoutSweptCollisions" classname="Rvo.Tests.Phase2NavigationTests" runstate="Runnable" seed="1545901349" result="Passed" start-time="2026-09-28 09:25:21Z" end-time="2026-09-28 09:25:24Z" duration="3.087415" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[seed=7 backend=Reference arrived=16/16 map=6 replans=161 safetyTicks=0
+]]></output>
+              </test-case>
+              <test-case id="1077" name="CrowdReplansAcrossRefreshesWithoutSweptCollisions(1,JobsBurst)" fullname="Rvo.Tests.Phase2NavigationTests.CrowdReplansAcrossRefreshesWithoutSweptCollisions(1,JobsBurst)" methodname="CrowdReplansAcrossRefreshesWithoutSweptCollisions" classname="Rvo.Tests.Phase2NavigationTests" runstate="Runnable" seed="670916446" result="Passed" start-time="2026-09-28 09:25:24Z" end-time="2026-09-28 09:25:27Z" duration="3.029329" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[seed=1 backend=JobsBurst arrived=16/16 map=6 replans=152 safetyTicks=0
+]]></output>
+              </test-case>
+              <test-case id="1078" name="CrowdReplansAcrossRefreshesWithoutSweptCollisions(7,JobsBurst)" fullname="Rvo.Tests.Phase2NavigationTests.CrowdReplansAcrossRefreshesWithoutSweptCollisions(7,JobsBurst)" methodname="CrowdReplansAcrossRefreshesWithoutSweptCollisions" classname="Rvo.Tests.Phase2NavigationTests" runstate="Runnable" seed="1281303319" result="Passed" start-time="2026-09-28 09:25:27Z" end-time="2026-09-28 09:25:30Z" duration="3.139287" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[seed=7 backend=JobsBurst arrived=16/16 map=6 replans=161 safetyTicks=0
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-case id="1073" name="GridUsesRadiusBoundaryAndContinuousCornerChecks" fullname="Rvo.Tests.Phase2NavigationTests.GridUsesRadiusBoundaryAndContinuousCornerChecks" methodname="GridUsesRadiusBoundaryAndContinuousCornerChecks" classname="Rvo.Tests.Phase2NavigationTests" runstate="Runnable" seed="911183862" result="Passed" start-time="2026-09-28 09:25:30Z" end-time="2026-09-28 09:25:30Z" duration="0.000533" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1080" name="RefreshAndResetAreDeterministicAndRequestWaitsForTick" fullname="Rvo.Tests.Phase2NavigationTests.RefreshAndResetAreDeterministicAndRequestWaitsForTick" methodname="RefreshAndResetAreDeterministicAndRequestWaitsForTick" classname="Rvo.Tests.Phase2NavigationTests" runstate="Runnable" seed="283637837" result="Passed" start-time="2026-09-28 09:25:30Z" end-time="2026-09-28 09:25:30Z" duration="0.040601" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1081" name="RejectedRefreshKeepsPublishedMapAndExistingPaths" fullname="Rvo.Tests.Phase2NavigationTests.RejectedRefreshKeepsPublishedMapAndExistingPaths" methodname="RejectedRefreshKeepsPublishedMapAndExistingPaths" classname="Rvo.Tests.Phase2NavigationTests" runstate="Runnable" seed="1830486510" result="Passed" start-time="2026-09-28 09:25:30Z" end-time="2026-09-28 09:25:30Z" duration="0.002332" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1082" name="SafetyCertificateCatchesPairsOmittedByNeighborQuery" fullname="Rvo.Tests.Phase2NavigationTests.SafetyCertificateCatchesPairsOmittedByNeighborQuery" methodname="SafetyCertificateCatchesPairsOmittedByNeighborQuery" classname="Rvo.Tests.Phase2NavigationTests" runstate="Runnable" seed="1552373380" result="Passed" start-time="2026-09-28 09:25:30Z" end-time="2026-09-28 09:25:30Z" duration="0.002827" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: C:/Users/20505/AppData/LocalLow/DefaultCompany/3D_RVO\TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

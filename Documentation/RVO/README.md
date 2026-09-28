@@ -1,6 +1,18 @@
-# Unity 6 RVO — Phase 1 算法工程交付
+# Unity 6 RVO — Phase 1 避障 + Phase 2 网格导航
 
-已实现 **None / VO / RVO / ORCA、BruteForce / SpatialHash、Reference / JobsBurst**。活动空间仍为 float3 存储的 XZ 平面圆盘；不使用 Rigidbody/Collider 的位置纠正。后续导航采用体素化，本轮不实现 Phase 2。
+已实现 **None / VO / RVO / ORCA、BruteForce / SpatialHash、Reference / JobsBurst**。新增 Phase 2：单层网格、二叉堆 A*、路径跟随、随机静态障碍刷新、组合避障和整步扫掠安全检查。活动空间为 float3 存储的 XZ 平面圆盘；不使用 Rigidbody/Collider 的位置纠正。
+
+## Phase 2 操作
+
+1. 打开 `Assets/RVO/Demo/Phase2_Navigation.unity`，点击 Play。默认 32×24 网格、55 个随机占据格、16 个 Agent、ORCA。灰块是障碍，彩色线是路径，十字是目标。
+2. 每 240 Tick（8 秒）刷新一批障碍；`Refresh obstacles` 请求下一 Tick 刷新，暂停时按 Step 提交。刷新保留当前位置和目标，并保证静态路径存在。
+3. `Next map seed` 使用下一个 seed 重置；`Reset` 保留当前 seed 和运行时覆盖，重现同一初态。配置资产不被修改。
+4. 查看 Map version、Replans、No path、Safety scale、Limited ticks、Arrived 和 Collision ticks。安全缩放小于 1 表示本步触发集中式退让，不能将其当作原始 ORCA 成功解。
+5. `Show paths and goals` 可隐藏路径；选择 RVO 对象查看选中 Agent 的路径、请求号与状态。字号默认 17，可在 Inspector 的 Hud Font Size 调整，面板过长可滚动。
+6. 导航和组合求解目前是 Reference；Backend 按钮切换邻居查询和积分的 Reference/JobsBurst。Phase 2 固定使用 ORCA；原四算法对照仍在 Phase 1 演示中。
+7. 场景缺失时使用 `Tools > RVO > Create Phase 2 Navigation Demo`；菜单只创建缺少的资源。测试运行 `Phase2NavigationTests` 和 `NavigationDriverTests`。
+
+详细设计见 [Phase 2 规划](PHASE2_PLAN.md)，实际结果见 [Phase 2 验证](VERIFICATION_P2.md)。第一版采用保守方形障碍膨胀；窄路、目标堵塞可能等待，任意拥堵的最终到达性尚未保证。旧 Benchmark 菜单只接受 Phase 1 配置，避免错误套用无地图报告。
 
 **正式 100 / 1k / 10k 压测未执行，Phase 1 整体规模验收与冻结待办。** 本轮结果、残余碰撞和限制见 [验证报告](VERIFICATION_P1.md)。旧 [P1.3 报告](VERIFICATION_P13.md) 是历史结果，不能与更新后的采样/Burst 轨迹混作同一次测量。
 

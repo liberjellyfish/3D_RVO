@@ -29,6 +29,7 @@ namespace Rvo.Editor
         {
             var profile = Selection.activeObject as SimulationProfile;
             if (profile == null) throw new InvalidOperationException("请先选择 SimulationProfile；此菜单会按配置执行完整测量。");
+            if (profile.Navigation.Enabled) throw new InvalidOperationException("此 runner 只测 Phase 1；Phase 2 请运行 NavigationTests，避免把无地图测量误报为导航性能。");
             string directory = Path.Combine("Verification", "Manual", DateTime.UtcNow.ToString("yyyyMMdd_HHmmss_fff"));
             var report = BenchmarkRunner.Run(profile.Simulation, profile.Scenario, profile.Benchmark, directory, SourceFingerprint());
             File.Copy("Packages/manifest.json", Path.Combine(directory, "manifest.json"));

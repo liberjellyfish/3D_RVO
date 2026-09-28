@@ -1,4 +1,6 @@
-# Phase 1 架构与升级边界
+# Phase 1 架构与 Phase 2 导航扩展
+
+Phase 2 已通过 `Phase2ModuleFactory` 接入原有 World：`Navigation/NavigationGrid` 管占据、保守净空和连通域，`GridPathfinder` 管堆优化 A*，`GridNavigation` 管版本/刷新/扁平路径与 Preferred，`GridAvoidanceSolver` 管动态 ORCA、静态完整责任支撑约束及整步安全证书。Unity 的 `GridMapPresenter` 只读取地图和路径。详细约定见 [Phase 2 规划](PHASE2_PLAN.md)。下文 Phase 1 算法约定仍适用于原有无地图模式。
 
 ## 1. 范围与坐标
 
@@ -130,7 +132,7 @@ VO / RVO 共用几何和候选速度评估组件，但分别保留自身速度�
 | Phase 3 | 3D VO Cone、球形 Agent、3D 查询、ORCA Plane、3D 优化器、3D 积分 | 数据所有权、Tick、目标/路径服务边界、压测工具 | 高度相遇、垂直回避、三维退化约束与性能 |
 | Phase 4 | 稀疏体素导航体、体素化、Clearance、连通域、3D A*、平滑、路径重验证 | 路径跟随 → Preferred → ORCA 主链 | 不同半径通行性、动态地图版本、平滑后的碰撞/净空 |
 
-已确定：Phase 2 采用单层体素导航，后续扩展完整 XYZ 体素空间；不以 NavMesh 作为主路线。体素占据、净空、连通性、路径和地图版本保持独立边界。当前避障的 Spatial Hash 与导航体素不共用职责；本轮不提前实现体素系统。
+Phase 2 已采用单层体素导航，后续扩展完整 XYZ 体素空间；不以 NavMesh 作为主路线。体素占据、净空、连通性、路径和地图版本保持独立边界。当前避障的 Spatial Hash 与导航体素不共用职责。
 
 静态障碍不是“速度为零、各承担一半责任”的普通 Agent。后续为墙段/多边形建立独立空间索引及约束构造，使用完整避让责任，并处理拐角和连续边界；无需改写动态 Agent 存储。
 
@@ -150,4 +152,4 @@ Jobs / Burst 接入采用 Unity 官方 [Job System](https://docs.unity3d.com/600
 - 到达后的 Agent 仍承担对称互惠责任，可能被移动离开目标；没有优先级、全局路径或死锁消解系统。未到达且连续低于 0.05 m/s 达 2 秒才计入 stalled，未在 900 Tick 内到达不自动算死锁。
 - BenchmarkRunner 显式调用，纯仿真计时与独立 O(N²) 质量检查分离。总计时包含完成 Job 的等待；逐阶段计时会增加同步开销。GC 字段仅覆盖 Step 主线程；Native 字段是有效载荷估算，不是分配器峰值。
 
-Phase 2 保持体素导航扩展边界，本轮没有实现导航、静态障碍或完整 XYZ 求解。
+Phase 2 的静态障碍采用格子方块的保守支撑平面，不等价于完整 RVO2 墙段/凸角约束。其求解后的统一时间缩放经过独立全 pair 扫掠复核，且仍在求解器内完成；积分器不二次改速。该集中式安全层成本 O(N²)，有退让和停滞风险。完整 XYZ 求解尚未实现。

@@ -53,10 +53,10 @@ namespace Rvo
             {
                 float2 p = Agents.Positions[i].xz;
                 int2 cell = (int2)math.floor(p / CellSize);
-                int span = (int)math.ceil(Range / CellSize);
+                int2 low = (int2)math.floor((p - Range) / CellSize), high = (int2)math.floor((p + Range) / CellSize);
                 int count = 0, found = 0, candidates = 0, occupancy = 0;
                 // 大范围/很小 cell 时枚举空格反而更慢；保留精确全扫描退路，查询语义不变。
-                if ((2.0 * span + 1) * (2.0 * span + 1) > Agents.Count * 8.0)
+                if ((double)(high.x - low.x + 1) * (high.y - low.y + 1) > Agents.Count * 8.0)
                 {
                     for (int j = 0; j < Agents.Count; j++)
                         NearestNeighbors.Insert(Agents, Output, i, j, Range * Range, ref count, ref found);
@@ -64,14 +64,17 @@ namespace Rvo
                     if (Buckets.TryGetFirstValue(cell, out int member, out var iterator))
                         do { occupancy++; } while (Buckets.TryGetNextValue(out member, ref iterator));
                 }
-                else for (int x = -span; x <= span; x++)
-                    for (int z = -span; z <= span; z++)
+                else for (int x = low.x; x <= high.x; x++)
+                    for (int z = low.y; z <= high.y; z++)
                     {
+                        // 用查询圆与桶 AABB 的下界剔除角落空桶；保留最近 K 及截断统计的精确语义。
+                        float2 boxMin = new float2(x, z) * CellSize;
+                        if (math.distancesq(p, math.clamp(p, boxMin, boxMin + CellSize)) > Range * Range) continue;
                         // 完整 int2 key 比较，hash 冲突不会合并不同格子；负坐标用 floor。
-                        if (!Buckets.TryGetFirstValue(cell + new int2(x, z), out int j, out var iterator)) continue;
+                        if (!Buckets.TryGetFirstValue(new int2(x, z), out int j, out var iterator)) continue;
                         do
                         {
-                            if (x == 0 && z == 0) occupancy++;
+                            if (x == cell.x && z == cell.y) occupancy++;
                             if (j != i) candidates++;
                             NearestNeighbors.Insert(Agents, Output, i, j, Range * Range, ref count, ref found);
                         } while (Buckets.TryGetNextValue(out j, ref iterator));
