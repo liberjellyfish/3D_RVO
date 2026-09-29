@@ -1,6 +1,10 @@
-# Unity 6 RVO — Phase 1 避障 + Phase 2 网格导航
+# Unity 6 RVO — 2D 阶段收尾，进入 Phase 3 规划
 
 已实现 **None / VO / RVO / ORCA、BruteForce / SpatialHash / KdTree、Reference / JobsBurst**。Phase 2 使用离线烘焙地图、ALT 加权 A* 与直线捷径、预算调度、路径跟随、静态 BVH、ORCA 和局部扫掠安全证书。数据为 float3，活动空间仍为 XZ 圆盘，不使用 Rigidbody/Collider 位置纠正。
+
+2026-09-29：用户完成后续人工验证，反馈 256 agent 约 1–2 分钟完成，1024 agent 在高频路径长时间滞留后约 20 分钟完成。按用户决定，2D 阶段告一段落；这些是整体完成耗时的观察，不是 A* 耗时或正式性能报告。1024 的拥堵长尾保留为已知限制，不阻塞 3D 开工。
+
+**下一步以 [Phase 3 详细规划](PHASE3_PLAN.md) 为准**：先做真实 XYZ 静态体素寻路，再接三维邻居与 ORCA，最后完成组合安全、三维恢复及规模收尾。轻量调试显示贯穿实施；GPU/VAT/海洋只预留[表现层契约与后续路线](PHASE4_PRESENTATION.md)。本次仅更新文档，Full3D 尚未实现，也未运行新的验证。
 
 ## Phase 2 操作
 
@@ -10,11 +14,11 @@
 4. `Pending` 是正在排队/计算路径，`Ready` 是已有可跟随路径，`No path` 是失败状态。直达目标当 Tick 启动；复杂路径默认四上下文轮转，每 Tick 4096 个节点、16 个排队请求。`PathHeuristicWeight=0` 使用默认 1.5，设为 1 作精确最短路对照。
 5. `Safety min scale` 是本步最小局部退让比例，`Limited agents` 是实际受影响数量。新增 `Stalled / Yielding / Recovery replans`：窄道对向使用临时通行优先级与主动退让，持续受阻可触发带临时代价的重规划。失败请求现在限频轮转重试，安全余量内的合法 agent 可返回导航净空。
 6. 默认隐藏路径，终点十字独立显示：深色内芯、白描边、高于 agent 平面，到达后仍覆盖可见。HUD 的 Paths / Goal crosses 独立切换。目标未变化且路径隐藏时复用 Mesh。大规模性能观察关闭 `Quality checks (O(N²))`；它是独立全量诊断，不是关闭生产安全检查。
-7. 本轮先运行 `TrafficRecoveryTests`、`Phase2OptimizationTests` 和 PlayMode 的 `NavigationDriverTests`；完整导航回归另有 `Phase2NavigationTests`。复杂性能矩阵可按[交通改进与验证步骤](PHASE2_TRAFFIC.md)手动执行。
+7. 后续需要回归 2D 时，可运行 `TrafficRecoveryTests`、`Phase2OptimizationTests` 和 PlayMode 的 `NavigationDriverTests`；完整导航回归另有 `Phase2NavigationTests`。历史检查与用户收尾反馈见[交通改进记录](PHASE2_TRAFFIC.md)，不是本轮待执行任务。
 
 当前交通协调、状态恢复、配置对照和人工验收见 [PHASE2_TRAFFIC.md](PHASE2_TRAFFIC.md)。基础实现与内存权衡见 [Phase 2 设计](PHASE2_PLAN.md)，上一轮证据索引见 [优化验证报告](VERIFICATION_P2_OPTIMIZATION.md)。[首版报告](VERIFICATION_P2.md) 仅作历史记录。
 
-局部退让已实现，但任意拥堵最终到达仍无保证；完整路口/时空预约、完整墙段 ORCA 与 Player 正式性能矩阵仍需继续。Phase 1 的正式 100 / 1k / 10k 验收不由本轮针对性检查替代。
+局部退让已实现，但任意拥堵最终到达仍无保证；完整路口/时空预约、完整墙段 ORCA 与 Player 正式性能矩阵作为历史待办保留，后续按需要开展。Phase 1 的正式 100 / 1k / 10k 验收没有被针对性检查替代，也不再作为进入 Phase 3 的前置要求。
 
 ## Unity 操作步骤
 

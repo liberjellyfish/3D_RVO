@@ -1,4 +1,6 @@
-# Phase 1 架构与 Phase 2 导航扩展
+# 仿真架构、Phase 2 基线与 Phase 3 迁移边界
+
+2026-09-29：Phase 2 经用户后续人工验证后接受收尾，Full3D 尚未实现。当前实现描述保留；计划中的体素导航、XYZ 查询/ORCA/积分与迁移清单见 [PHASE3_PLAN.md](PHASE3_PLAN.md)，GPU/VAT/海洋接口约定见 [PHASE4_PRESENTATION.md](PHASE4_PRESENTATION.md)。新阶段仍复用同一 World 和 AgentStorage，本轮只更新文档。
 
 Phase 2 通行协调扩展：`GridNavigation` 持有 `TrafficRecovery`，在路径跟随之后修改 preferred 与本步优先级，在局部退让之外按预算发起拥堵重规划；`GridAvoidanceSolver` 使用互补责任构造动态平面，静态约束与扫掠证书保持独立。失败请求限频轮转恢复，导航余量内只改变 preferred、不直接修改位置。表现层目标十字独立于路径开关，并缓存静态几何。详见 [交通与恢复设计](PHASE2_TRAFFIC.md)。
 
@@ -28,8 +30,8 @@ flowchart TD
     Commit --> State
     Commit --> Presentation[只读表现层]
     Commit --> Metrics[质量检查 / 显式基准 runner]
-    Path[Phase 2/4：路径服务与路径跟随] -.-> Preferred
-    Static[Phase 2：静态障碍约束] -.-> Solver
+    Path[Phase 2/3：路径服务与路径跟随] -.-> Preferred
+    Static[Phase 2/3：静态约束与安全证书] -.-> Solver
     Space[Phase 3：3D 查询和求解内核] -.-> Solver
 ```
 
@@ -131,14 +133,15 @@ VO / RVO 共用几何和候选速度评估组件，但分别保留自身速度�
 | 阶段 | 新增模块 | 保留内容 | 必须重新验证 |
 | --- | --- | --- | --- |
 | Phase 2 | 单层体素占据/净空/连通性、路径请求/缓存、体素 A*、路径跟随 Preferred、静态边界约束源 | World、Agent float3、动态邻居查询、表现和报告接口 | 路径可达性、墙角/窄道、导航边界与实际避障结果 |
-| Phase 3 | 3D VO Cone、球形 Agent、3D 查询、ORCA Plane、3D 优化器、3D 积分 | 数据所有权、Tick、目标/路径服务边界、压测工具 | 高度相遇、垂直回避、三维退化约束与性能 |
-| Phase 4 | 稀疏体素导航体、体素化、Clearance、连通域、3D A*、平滑、路径重验证 | 路径跟随 → Preferred → ORCA 主链 | 不同半径通行性、动态地图版本、平滑后的碰撞/净空 |
+| Phase 3（规划） | 基础三维体素、净空/连通域、3D A* 与跟随；球体邻居、ORCA Plane、3D 优化/积分、静动态扫掠与恢复 | 同一 World / float3 SoA、数据所有权、Tick、请求与模块边界 | 真正上下绕障、高度相遇、垂直回避、三维约束退化、瓶颈等待与性能 |
+| Phase 4（预留） | 表现快照适配、GraphicsBuffer、GPU 剔除/LOD、间接绘制、VAT、URP 海洋 | 核心仿真、轻量 Debug、导航与避障结果 | 上传/释放、实例 ID、显示误差、CPU/GPU 分项与端到端开销 |
+| 可选导航扩展 | 稀疏/分层图、任意 Mesh 体素化、局部更新/流式加载 | 路径跟随 → Preferred → ORCA 主链 | 不同半径通行性、地图版本/请求失效、平滑后净空 |
 
 Phase 2 已采用单层体素导航，后续扩展完整 XYZ 体素空间；不以 NavMesh 作为主路线。体素占据、净空、连通性、路径和地图版本保持独立边界。当前避障的 Spatial Hash 与导航体素不共用职责。
 
 静态障碍不是“速度为零、各承担一半责任”的普通 Agent。后续为墙段/多边形建立独立空间索引及约束构造，使用完整避让责任，并处理拐角和连续边界；无需改写动态 Agent 存储。
 
-未来导航服务输出带 requestId、agentId、mapVersion、路径状态的 waypoint 缓冲；路径跟随器消费它并实现现有 Preferred 接口。导航和局部避障独立更新频率；路径过期、无路径和目标更新明确处理，不能让 ORCA 充当寻路器。
+Phase 2 导航服务已输出带 requestId、agentId、mapVersion、路径状态的 waypoint 缓冲；Phase 3 沿用这些语义并改为 float3 waypoint。路径跟随器消费它并实现现有 Preferred 接口。导航和局部避障独立更新频率；路径过期、无路径和目标更新明确处理，不能让 ORCA 充当寻路器。
 
 Jobs / Burst 接入采用 Unity 官方 [Job System](https://docs.unity3d.com/6000.0/Documentation/Manual/job-system.html) 的依赖与内存所有权规则。已接入可切换的 Reference / JobsBurst 后端。Preferred、查询、求解、积分按 Agent 并行；Hash 建桶采用单个 Burst Job。参考后端不经 Burst 编译，复用算法内核。每个 Agent 独占 N*K 中的 K 个槽位，保留容器生命周期/依赖检查；未关闭整个容器安全系统。
 
@@ -155,3 +158,13 @@ Jobs / Burst 接入采用 Unity 官方 [Job System](https://docs.unity3d.com/600
 - BenchmarkRunner 显式调用，纯仿真计时与独立 O(N²) 质量检查分离。总计时包含完成 Job 的等待；逐阶段计时会增加同步开销。GC 字段仅覆盖 Step 主线程；Native 字段是有效载荷估算，不是分配器峰值。
 
 Phase 2 静态障碍采用合并格子矩形的保守支撑平面，不等价于完整 RVO2 墙段/凸角约束。动态无解时仅松弛动态约束；独立安全层用静态 BVH 和动态扫掠哈希（Reference 为全 pair）计算安全前缀，触发后在本步潜在相互作用连通分量内统一缩放。不同分量互不拖停；积分器不二次改速。密集分量仍有退让和停滞风险。查询/路径跟随/组合求解/安全层/积分支持 JobsBurst，A* 搜索与路径服务管理为主线程。完整 XYZ 求解尚未实现。
+
+## 10. Phase 3 与表现层的计划契约
+
+先加独立三维装配和几何内核，按需要整理接缝，不重写 World 或预先泛型化所有 2D 算法。现有 Full3D 枚举和 float3 数据不意味着三维已经可用：暴力邻居、质量诊断、路径、Hash/KDTree 与积分仍有显式平面假设，必须逐项替换。
+
+三维静态导航先使用小型稠密体素和 A*。导航边、连通域、路径平滑与跟随采用同一净空/扫掠规则。三维 Avoidance 将静态硬约束、动态 ORCA 和最终全步安全验证组合后输出速度，XYZ Integrator 只积分。三维优化变量是速度球内的 float3，ORCA Plane 表示速度空间半空间，不是世界空间障碍表面。
+
+请求预算、失败重试、等待老化和公平性原则保留；三维退让位置与瓶颈通过关系重新定义。地图只读共享、搜索工作区限制上下文数；体素尺寸和工作区内存必须在创建时检查，不能直接复制二维的 512² 到 512³。
+
+表现层始终在 Commit 后借用状态，若需要跨 Tick/GPU 使用则复制到自有缓冲；核心不持有 GraphicsBuffer 或动画状态。朝向、VAT、显示插值与 GPU 剔除仅改变呈现。World 的调试出口未来通过维度正确的调试提供者取得选中 agent 数据，解除当前对 OrcaSolver2D 的具体类型判断；不在常态每 Tick 保存全体 N×K 平面副本。
