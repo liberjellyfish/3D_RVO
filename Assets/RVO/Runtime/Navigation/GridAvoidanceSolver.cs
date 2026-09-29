@@ -61,7 +61,7 @@ namespace Rvo
                 MaxStatic = navigation.Settings.MaxStaticConstraints, Margin = navigation.Settings.SafetyMargin,
                 Horizon = math.max(context.DeltaTime,navigation.Settings.StaticTimeHorizon),
                 MapMin = navigation.Map.Min, MapMax = navigation.Map.Max, DroppedStatic = droppedStatic };
-            solve.StaticDistances = staticDistances;
+            solve.StaticDistances = staticDistances; solve.Priorities = navigation.TrafficPriorities;
             var build = new SafetyBuildJob { Agents = agents, Buckets = safetyBuckets, CellSize = safetyCellSize };
             var safety = new SafetyJob { Agents = agents, Velocities = motionOutput.Velocities, Nodes = nodes,
                 Buckets = safetyBuckets, CellSize = safetyCellSize, MaxRadius = maxRadius, MaxSpeed = maxSpeed,
@@ -161,6 +161,7 @@ namespace Rvo
             [ReadOnly] public NativeArray<float3>.ReadOnly Preferred;
             [ReadOnly] public NeighborReadView Neighbors;
             [ReadOnly] public NativeArray<ObstacleNode> Nodes;
+            [ReadOnly] public NativeArray<float>.ReadOnly Priorities;
             public MotionOutput Output;
             [NativeDisableParallelForRestriction] public NativeArray<VelocityHalfPlane2D> Constraints;
             [NativeDisableParallelForRestriction] public NativeArray<float> StaticDistances;
@@ -209,7 +210,8 @@ namespace Rvo
                     int j = Neighbors.Indices[i*Neighbors.MaxNeighbors+slot];
                     Constraints[start+count++] = OrcaGeometry2D.Build(Agents.Positions[j].xz-position,Agents.Velocities[i].xz,Agents.Velocities[j].xz,
                         Agents.Parameters[i].Radius+Agents.Parameters[j].Radius+Context.Settings.Vo.SafetyMargin,
-                        Context.Settings.TimeHorizon,Context.DeltaTime,Agents.Ids[i],Agents.Ids[j],Context.Settings.Epsilon);
+                        Context.Settings.TimeHorizon,Context.DeltaTime,Agents.Ids[i],Agents.Ids[j],Context.Settings.Epsilon,
+                        Priorities[j]/(Priorities[i]+Priorities[j]));
                 }
                 var status = PlanarVelocityOptimizer.Solve(new NativeSlice<VelocityHalfPlane2D>(Constraints,start,count),
                     Preferred[i].xz,Agents.Parameters[i].MaxSpeed,Context.Settings.Epsilon,out float2 velocity,staticCount+4);
@@ -261,6 +263,11 @@ namespace Rvo
                     if (!ObstacleBvh.SegmentBox(p,end,node.Min-radius-Margin,node.Max+radius+Margin,out float enter)) { index = node.Escape; continue; }
                     index++; if (node.Leaf == 0) continue;
                     if (math.all(p > node.Min-radius) && math.all(p < node.Max+radius)) { limit = -1; break; }
+                    // 起点在额外安全余量内时，允许远离/沿边移动；仍独立验证完整物理扫掠。
+                    // 否则 enter=0 会让合法初态永远无法退回导航净空。
+                    float2 separation = p-math.clamp(p,node.Min-radius,node.Max+radius);
+                    if (enter == 0 && math.dot(displacement,separation) >= 0 &&
+                        !ObstacleBvh.SegmentBox(p,end,node.Min-radius,node.Max+radius,out _)) continue;
                     limit = math.min(limit,SafePrefix(enter));
                 }
                 if (BruteForce)

@@ -218,6 +218,7 @@ namespace Rvo
                 GUILayout.EndHorizontal();
                 GUILayout.Label($"Arrived {Navigation.ArrivedCount} | Pending {Navigation.PendingCount} | No path {Navigation.NoPathCount}");
                 GUILayout.Label($"Ready {Navigation.ReadyCount} | Direct/tick {Navigation.LastDirectPaths} | A* weight {Navigation.Settings.EffectiveHeuristicWeight:F2}");
+                GUILayout.Label($"Stalled {Navigation.StalledCount} | Yielding {Navigation.YieldingCount} | Recovery replans {Navigation.RecoveryReplans}");
                 GUILayout.Label($"Search nodes/tick {Navigation.LastExpandedNodes} | Requests {Navigation.ReplanCount}");
                 GUILayout.Label($"Safety min scale {NavigationSolver.LastSafetyScale:F3} | Limited agents {NavigationSolver.LastLimitedAgents} | Ticks {NavigationSolver.SafetyLimitedTicks}");
                 GUILayout.Label($"Safety pair checks {NavigationSolver.LastSafetyPairChecks} | Static truncated {NavigationSolver.LastStaticTruncations}");
@@ -232,6 +233,8 @@ namespace Rvo
                 {
                     bool showPaths = GUILayout.Toggle(MapPresenter.ShowPaths, $"Paths (max {MapPresenter.MaxDisplayedPaths} + selected)");
                     if (showPaths != MapPresenter.ShowPaths) { MapPresenter.ShowPaths = showPaths; PresentMap(); }
+                    bool showGoals = GUILayout.Toggle(MapPresenter.ShowGoals, "Goal crosses (above agents)");
+                    if (showGoals != MapPresenter.ShowGoals) { MapPresenter.ShowGoals = showGoals; PresentMap(); }
                 }
             }
             if (World != null)

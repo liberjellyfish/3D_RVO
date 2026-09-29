@@ -8,13 +8,13 @@
 2. 地图运行期间保持静态。修改 Profile 的地图、半径或安全余量后，用 `Tools > RVO > Upgrade Phase 2 Demo to 512 and Bake` 恢复标准演示并重烘焙；自定义参数用 Profile Inspector 的 Bake 操作。前者会重置演示参数，请保留自定义配置副本。
 3. HUD 的档位按钮、Reset、Query、Backend 都重新创建世界，复用相同烘焙地图。Query 循环 BruteForce → SpatialHash → KdTree；默认仍为 SpatialHash，KDTree 可用于对照。切换不会写回 Profile。
 4. `Pending` 是正在排队/计算路径，`Ready` 是已有可跟随路径，`No path` 是失败状态。直达目标当 Tick 启动；复杂路径默认四上下文轮转，每 Tick 4096 个节点、16 个排队请求。`PathHeuristicWeight=0` 使用默认 1.5，设为 1 作精确最短路对照。
-5. `Safety min scale` 是本步最小局部退让比例，`Limited agents` 是实际受影响数量。局部冲突不会无条件减速整个场景。接触余量内静止/分离不再触发零比例。
-6. 路径显示有数量上限并包含选中 agent；可隐藏路径、缩放/平移相机或聚焦选中 agent。大规模性能观察关闭 `Quality checks (O(N²))`；它是独立全量诊断，不是关闭生产安全检查。
-7. 运行 `Phase2NavigationTests`、`Phase2OptimizationTests`、`Phase2ThroughputTests` 和 PlayMode 的 `NavigationDriverTests`。完整回归保留 Phase 1 测试。
+5. `Safety min scale` 是本步最小局部退让比例，`Limited agents` 是实际受影响数量。新增 `Stalled / Yielding / Recovery replans`：窄道对向使用临时通行优先级与主动退让，持续受阻可触发带临时代价的重规划。失败请求现在限频轮转重试，安全余量内的合法 agent 可返回导航净空。
+6. 默认隐藏路径，终点十字独立显示：深色内芯、白描边、高于 agent 平面，到达后仍覆盖可见。HUD 的 Paths / Goal crosses 独立切换。目标未变化且路径隐藏时复用 Mesh。大规模性能观察关闭 `Quality checks (O(N²))`；它是独立全量诊断，不是关闭生产安全检查。
+7. 本轮先运行 `TrafficRecoveryTests`、`Phase2OptimizationTests` 和 PlayMode 的 `NavigationDriverTests`；完整导航回归另有 `Phase2NavigationTests`。复杂性能矩阵可按[交通改进与验证步骤](PHASE2_TRAFFIC.md)手动执行。
 
-本轮实现与内存/性能权衡见 [Phase 2 设计](PHASE2_PLAN.md)，实际结果见 [优化验证报告](VERIFICATION_P2_OPTIMIZATION.md)。[首版报告](VERIFICATION_P2.md) 仅作历史记录，其运行时刷新和主线程组合求解描述已过时。
+当前交通协调、状态恢复、配置对照和人工验收见 [PHASE2_TRAFFIC.md](PHASE2_TRAFFIC.md)。基础实现与内存权衡见 [Phase 2 设计](PHASE2_PLAN.md)，上一轮证据索引见 [优化验证报告](VERIFICATION_P2_OPTIMIZATION.md)。[首版报告](VERIFICATION_P2.md) 仅作历史记录。
 
-当前没有任意拥堵最终到达保证；窄道预约、目标占道管理、完整墙段 ORCA 与 Player 正式性能矩阵仍需继续。Phase 1 的正式 100 / 1k / 10k 验收不由本轮 Editor 对照替代。
+局部退让已实现，但任意拥堵最终到达仍无保证；完整路口/时空预约、完整墙段 ORCA 与 Player 正式性能矩阵仍需继续。Phase 1 的正式 100 / 1k / 10k 验收不由本轮针对性检查替代。
 
 ## Unity 操作步骤
 

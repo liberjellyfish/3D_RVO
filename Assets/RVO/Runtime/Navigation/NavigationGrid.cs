@@ -210,6 +210,21 @@ namespace Rvo
             }
             return true;
         }
+        // 只在物理合法、却落入导航安全余量的情况下回到局部可走格；不投影/传送位置。
+        public bool TryRecoveryPoint(float2 point, float physicalRadius, out float2 target)
+        {
+            target = point;
+            if (!SegmentClear(point,point,physicalRadius)) return false;
+            int cell = Cell(point); if (cell < 0) return false;
+            int span = math.max(2,(int)math.ceil(ClearanceRadius/CellSize)+2); float best = float.PositiveInfinity;
+            for (int z = -span; z <= span; z++) for (int x = -span; x <= span; x++)
+            {
+                int candidate = Index(cell%Width+x,cell/Width+z); if (!IsWalkable(candidate)) continue;
+                float2 p = Center(candidate); float distance = math.distancesq(point,p);
+                if (distance < best && SegmentClear(point,p,physicalRadius)) { best = distance; target = p; }
+            }
+            return math.isfinite(best);
+        }
         public static bool IntersectsBox(float2 a, float2 b, float2 low, float2 high) => ObstacleBvh.SegmentBox(a,b,low,high,out _);
     }
 }

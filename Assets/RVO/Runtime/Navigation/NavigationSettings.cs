@@ -17,6 +17,10 @@ namespace Rvo
         // 0 兼容旧资产；有效默认值为 4 / 1.5。1 保留精确 A* 对照。
         public int PathSearchSlots;
         public float PathHeuristicWeight;
+        public bool DisableTrafficRecovery;
+        public float StallSeconds, RecoveryCooldownSeconds;
+        public float EffectiveStallSeconds => StallSeconds == 0 ? 1.25f : StallSeconds;
+        public float EffectiveRecoveryCooldown => RecoveryCooldownSeconds == 0 ? 4 : RecoveryCooldownSeconds;
         public int EffectiveSearchSlots => PathSearchSlots == 0 ? 4 : PathSearchSlots;
         public float EffectiveHeuristicWeight => PathHeuristicWeight == 0 ? 1.5f : PathHeuristicWeight;
         public static NavigationSettings Default => new NavigationSettings
@@ -36,6 +40,7 @@ namespace Rvo
                 !math.isfinite(StaticTimeHorizon) || StaticTimeHorizon <= 0 ||
                 !math.isfinite(radius) || radius <= 0 || radius + SafetyMargin >= math.min(Width, Height) * CellSize * 0.5f ||
                 PathExpansionsPerTick < 1 || PathRequestsPerTick < 1 || MaxStaticConstraints < 4 || MaxStaticConstraints > 256 ||
+                !math.isfinite(StallSeconds) || StallSeconds < 0 || !math.isfinite(RecoveryCooldownSeconds) || RecoveryCooldownSeconds < 0 ||
                 PathSearchSlots < 0 || PathSearchSlots > 16 || !math.isfinite(PathHeuristicWeight) ||
                 (PathHeuristicWeight != 0 && (PathHeuristicWeight < 1 || PathHeuristicWeight > 2)))
                 throw new ArgumentException("导航参数无效：地图 4..512，半径须能放入地图，障碍尺寸及搜索预算须为正。");

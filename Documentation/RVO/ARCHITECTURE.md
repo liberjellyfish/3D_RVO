@@ -1,5 +1,7 @@
 # Phase 1 架构与 Phase 2 导航扩展
 
+Phase 2 通行协调扩展：`GridNavigation` 持有 `TrafficRecovery`，在路径跟随之后修改 preferred 与本步优先级，在局部退让之外按预算发起拥堵重规划；`GridAvoidanceSolver` 使用互补责任构造动态平面，静态约束与扫掠证书保持独立。失败请求限频轮转恢复，导航余量内只改变 preferred、不直接修改位置。表现层目标十字独立于路径开关，并缓存静态几何。详见 [交通与恢复设计](PHASE2_TRAFFIC.md)。
+
 Phase 2 通过 `Phase2ModuleFactory` 接入原有 World：`NavigationGrid` 管离线烘焙占据、净空、连通域、静态 BVH 和共享 ALT/跳跃索引；`GridPathfinder` 管可恢复加权 A*；`GridNavigation` 管预算队列、四搜索上下文、池化路径与 Preferred；`GridAvoidanceSolver` 管动态 ORCA、静态硬约束和局部连通分量安全证书。`NeighborSearchFactory` 在 BruteForce / SpatialHash / KdTree 间选择。地图在一次运行中不可变。Unity 的 `GridMapPresenter` 只读取地图和路径。详细约定见 [Phase 2 设计](PHASE2_PLAN.md)。下文 Phase 1 算法约定仍适用于原有无地图模式。
 
 ## 1. 范围与坐标

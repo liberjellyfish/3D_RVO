@@ -6,7 +6,7 @@ namespace Rvo
     public static class OrcaGeometry2D
     {
         public static VelocityHalfPlane2D Build(float2 p, float2 selfVelocity, float2 otherVelocity,
-            float radius, float horizon, float dt, int selfId, int otherId, float epsilon)
+            float radius, float horizon, float dt, int selfId, int otherId, float epsilon, float responsibility = 0.5f)
         {
             float2 relative = selfVelocity - otherVelocity;
             float distanceSquared = math.lengthsq(p);
@@ -41,7 +41,7 @@ namespace Rvo
                 correction = (radius / dt - length) * normal;
             }
             return new VelocityHalfPlane2D { Normal = normal,
-                Offset = math.dot(normal, selfVelocity + 0.5f * correction), SourceId = otherId };
+                Offset = math.dot(normal, selfVelocity + responsibility * correction), SourceId = otherId };
         }
 
         public static float Det(float2 a, float2 b) => a.x * b.y - a.y * b.x;

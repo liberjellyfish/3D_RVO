@@ -1,5 +1,7 @@
 # Phase 2：二维导航与避障（当前实现）
 
+本轮新增：`TrafficRecovery` 通行优先级/主动退让、拥堵区域临时代价、失败请求轮转重试、安全余量回归，以及独立目标十字与静态显示缓存。配置、算法边界和验证步骤见 [PHASE2_TRAFFIC.md](PHASE2_TRAFFIC.md)。下文保留基础搜索/查询/安全证书设计，动态约束的等分责任在启用协调时改为互补优先级比例。
+
 更新：2026-09-29。以当前 512×512 离线烘焙地图为准；旧版运行时随机刷新已移除。历史首版测试见 [VERIFICATION_P2.md](VERIFICATION_P2.md)，本轮证据见 [VERIFICATION_P2_OPTIMIZATION.md](VERIFICATION_P2_OPTIMIZATION.md)。
 
 ## 地图与共享索引

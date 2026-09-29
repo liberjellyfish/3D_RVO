@@ -17,6 +17,8 @@ namespace Rvo
         private float weight;
         private NavigationLandmarks landmarks;
         private int[] jumps;
+        private float2 penaltyCenter;
+        private float penaltyRadius;
         public GridPathStatus Status { get; private set; }
         public float LastGraphCost { get; private set; }
         public int ExpandedNodes { get; private set; }
@@ -26,20 +28,25 @@ namespace Rvo
             heap = new int[capacity]; heapSlots = new int[capacity]; reverse = new int[capacity];
             stamps = new int[capacity];
         }
-        public void Begin(NavigationGrid grid, float2 start, float2 goal, bool allowDirect = true, float heuristicWeight = 1, NavigationLandmarks landmarkHeuristic = null)
+        public void Begin(NavigationGrid grid, float2 start, float2 goal, bool allowDirect = true, float heuristicWeight = 1,
+            NavigationLandmarks landmarkHeuristic = null, float2 congestionCenter = default, float congestionRadius = 0)
         {
             if (!math.isfinite(heuristicWeight) || heuristicWeight < 1 || heuristicWeight > 2)
                 throw new ArgumentOutOfRangeException(nameof(heuristicWeight));
+            if (grid == null || grid.Count > costs.Length) throw new ArgumentException("A* scratch 不足。");
+            if (!math.isfinite(congestionRadius) || congestionRadius < 0 || !math.all(math.isfinite(congestionCenter)))
+                throw new ArgumentException("Invalid congestion region.");
+            penaltyCenter = congestionCenter; penaltyRadius = congestionRadius;
             weight = heuristicWeight;
             landmarks = landmarkHeuristic;
-            jumps = landmarkHeuristic == null ? null : grid.JumpTargets;
-            if (grid == null || grid.Count > costs.Length) throw new ArgumentException("A* scratch 不足。");
+            // 拥堵请求使用原始边计费，避免一条长跳跃绕过中间格的代价。
+            jumps = landmarkHeuristic == null || penaltyRadius > 0 ? null : grid.JumpTargets;
             map = grid; startPoint = start; goalPoint = goal; heapCount = 0; ExpandedNodes = 0;
             direct = false; LastGraphCost = float.PositiveInfinity; Status = GridPathStatus.Pending;
             int source = map.Anchor(start); target = map.Anchor(goal); targetNode = -1;
             if (source < 0 || target < 0) { Status = GridPathStatus.InvalidEndpoint; return; }
             if (map.Component(source) != map.Component(target)) { Status = GridPathStatus.NoPath; return; }
-            if (allowDirect && map.SegmentClear(start, goal, map.ClearanceRadius))
+            if (allowDirect && !CrossesCongestion(start,goal) && map.SegmentClear(start, goal, map.ClearanceRadius))
             { direct = true; LastGraphCost = math.distance(start,goal); Status = GridPathStatus.Ready; return; }
             if (stamp == int.MaxValue) { Array.Clear(stamps, 0, stamps.Length); stamp = 0; }
             stamp++; Touch(source); costs[source] = 0; scores[source] = weight * Heuristic(source); PushOrDecrease(source);
@@ -75,7 +82,9 @@ namespace Rvo
         }
         private void Relax(int current, int next, float edgeCost)
         {
-            Touch(next); float cost = costs[current]+edgeCost;
+            Touch(next);
+            float multiplier = penaltyRadius > 0 && math.distancesq(map.Center(next),penaltyCenter) < penaltyRadius*penaltyRadius ? 9 : 1;
+            float cost = costs[current]+edgeCost*multiplier;
             if (cost >= costs[next]) return;
             // 加权启发式不再一致：更优 g 重新打开节点。
             costs[next] = cost; scores[next] = cost+weight*Heuristic(next);
@@ -97,10 +106,17 @@ namespace Rvo
             // 单次线性拉直，不为每个拐点逆向遍历所有剩余节点；每条输出线段均验证净空。
             int write = 1, anchor = 0;
             for (int point = 2; point < count; point++)
-                if (!map.SegmentClear(output[offset + anchor], output[offset + point], map.ClearanceRadius))
+                if (CrossesCongestion(output[offset+anchor],output[offset+point]) ||
+                    !map.SegmentClear(output[offset + anchor], output[offset + point], map.ClearanceRadius))
                 { output[offset + write++] = output[offset + point - 1]; anchor = write - 1; }
             output[offset + write++] = goalPoint;
             return write;
+        }
+        private bool CrossesCongestion(float2 a, float2 b)
+        {
+            if (penaltyRadius <= 0) return false;
+            float2 d = b-a; float t = math.clamp(math.dot(penaltyCenter-a,d)/math.max(1e-10f,math.lengthsq(d)),0,1);
+            return math.distancesq(a+d*t,penaltyCenter) < penaltyRadius*penaltyRadius;
         }
         public GridPathStatus Find(NavigationGrid grid, float2 start, float2 goal, float2[] output, int offset, out int count)
         {

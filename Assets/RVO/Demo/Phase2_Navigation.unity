@@ -249,7 +249,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Material: {fileID: 2100000, guid: f2f45fb97ba8a9c46befa63886f9c44d, type: 2}
-  ShowPaths: 1
+  ShowPaths: 0
+  ShowGoals: 1
   MaxDisplayedPaths: 32
   SelectedAgent: 0
 --- !u!114 &2037797325
