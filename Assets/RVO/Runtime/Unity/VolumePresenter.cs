@@ -16,6 +16,8 @@ namespace Rvo
         private Mesh spheres, boxes, lines;
         private GameObject boxObject, lineObject;
         private Vector3[] vertices, unitSphere;
+        private Color[] colors, movingColors;
+        private bool[] arrived;
         private readonly List<Vector3> lineVertices = new List<Vector3>(16384);
         private readonly List<Color> lineColors = new List<Color>(16384);
         private readonly List<int> lineIndices = new List<int>(16384);
@@ -31,7 +33,8 @@ namespace Rvo
                 float theta = Mathf.PI * y / Latitude, phi = 2 * Mathf.PI * x / Longitude;
                 unitSphere[y * (Longitude + 1) + x] = new Vector3(Mathf.Sin(theta) * Mathf.Cos(phi), Mathf.Cos(theta), Mathf.Sin(theta) * Mathf.Sin(phi));
             }
-            vertices = new Vector3[agents.Count * Stride]; var colors = new Color[vertices.Length];
+            vertices = new Vector3[agents.Count * Stride]; colors = new Color[vertices.Length];
+            movingColors = new Color[vertices.Length]; arrived = new bool[agents.Count];
             var triangles = new int[agents.Count * Latitude * Longitude * 6]; int t = 0;
             for (int i = 0; i < agents.Count; i++)
             {
@@ -44,6 +47,7 @@ namespace Rvo
                     triangles[t++] = a + 1; triangles[t++] = b + 1; triangles[t++] = b;
                 }
             }
+            System.Array.Copy(colors, movingColors, colors.Length);
             spheres = new Mesh { name = "XYZ agent spheres", indexFormat = IndexFormat.UInt32 }; spheres.MarkDynamic();
             spheres.vertices = vertices; spheres.colors = colors; spheres.triangles = triangles;
             GetComponent<MeshFilter>().sharedMesh = spheres; GetComponent<MeshRenderer>().sharedMaterial = Material;
@@ -70,12 +74,23 @@ namespace Rvo
         public void StopFollowing() { if (ViewCamera != null && ViewCamera.TryGetComponent<VolumeCameraControls>(out var controls)) controls.StopFollowing(); }
         public void Present(in AgentReadView agents, VolumeNavigation navigation, VolumeAvoidanceSolver solver, SimulationWorld world)
         {
-            var matrix = transform.worldToLocalMatrix;
+            var matrix = transform.worldToLocalMatrix; bool colorsChanged = false;
             for (int i = 0; i < agents.Count; i++)
             {
                 Vector3 position = agents.Positions[i]; float radius = agents.Parameters[i].Radius;
                 for (int v = 0; v < Stride; v++) vertices[i * Stride + v] = matrix.MultiplyPoint3x4(position + unitSphere[v] * radius);
+                // 以提交后的距离判断到达，不能把堵塞时的低速误标成完成。
+                bool atGoal = math.distancesq(agents.Positions[i], agents.Goals[i]) <=
+                    agents.Parameters[i].ArrivalDistance * agents.Parameters[i].ArrivalDistance;
+                if (arrived[i] == atGoal) continue;
+                arrived[i] = atGoal; colorsChanged = true;
+                for (int v = 0; v < Stride; v++)
+                    // 白色球体 + 深色赤道带，无额外物体、材质或绘制批次；离开终点恢复原色。
+                    colors[i * Stride + v] = atGoal
+                        ? (Mathf.Abs(unitSphere[v].y) < 0.1f ? new Color(0.025f, 0.04f, 0.065f) : Color.white)
+                        : movingColors[i * Stride + v];
             }
+            if (colorsChanged) spheres.colors = colors;
             spheres.vertices = vertices; spheres.RecalculateBounds(); BeginLines();
             int selected = Mathf.Clamp(SelectedAgent, 0, agents.Count - 1);
             if (ViewCamera != null && ViewCamera.TryGetComponent<VolumeCameraControls>(out var controls) && controls.Following)

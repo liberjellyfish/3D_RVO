@@ -1,6 +1,6 @@
 # Phase 3：真正 XYZ 空间的多智能体导航
 
-状态：Phase 3 核心已实施，2026-09-30 完成寻路性能与场景交互优化。本文下文保留原设计提案；实际实现、测量口径与本轮验证见 [性能验证报告](VERIFICATION_P3_OPTIMIZATION.md)。
+状态：Phase 3 核心已实施，2026-10-01 完成到达标识与首路径等待优化。本文下文保留原设计提案；当前实现和证据见 [收尾验证](VERIFICATION_P3_CLOSEOUT.md)，前一轮记录见 [性能验证报告](VERIFICATION_P3_OPTIMIZATION.md)。下一轮进入 Phase 4。
 
 ## 1. Phase 2 收尾与本阶段目标
 

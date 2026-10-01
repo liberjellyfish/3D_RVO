@@ -102,7 +102,8 @@ namespace Rvo
             int3 d = math.abs(delta); int lo = math.cmin(d), hi = math.cmax(d), mid = math.csum(d) - lo - hi;
             return hi + (1.41421356237f - 1) * mid + (1.73205080757f - 1.41421356237f) * lo;
         }
-        private float Heuristic(int cell) => GridDistance(map.Cell(cell) - map.Cell(target)) * map.CellSize;
+        private float Heuristic(int cell) => math.max(GridDistance(map.Cell(cell) - map.Cell(target)) * map.CellSize,
+            map.Landmarks?.LowerBound(cell, target) ?? 0);
         public void Dispose() { }
         private void Add(int cell, int parent, float cost)
         {

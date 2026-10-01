@@ -25,6 +25,8 @@ namespace Rvo
         private readonly int[] reverse;
         private readonly NavigationVolume fineMap;
         private readonly VolumeQuery fineQuery, coarseQuery;
+        private NativeArray<float> landmarks;
+        private readonly bool ownsLandmarks;
         private NavigationVolume map, geometry;
         private SearchJob job;
         private float3 start, goal, penaltyCenter;
@@ -34,13 +36,16 @@ namespace Rvo
         public float GraphCost => state[0].Cost;
         public int ExpandedNodes => state[0].Expanded;
 
-        public BurstVolumePathfinder(int capacity, NavigationVolume fineMap, VolumeQuery fineQuery, VolumeQuery coarseQuery = default)
+        public BurstVolumePathfinder(int capacity, NavigationVolume fineMap, VolumeQuery fineQuery, VolumeQuery coarseQuery = default,
+            NativeArray<float> coarseLandmarks = default)
         {
             if (capacity < 1) throw new ArgumentOutOfRangeException(nameof(capacity));
             this.fineMap = fineMap; this.fineQuery = fineQuery; this.coarseQuery = coarseQuery;
+            ownsLandmarks = !coarseLandmarks.IsCreated;
             reverse = new int[capacity];
             try
             {
+                landmarks = ownsLandmarks ? new NativeArray<float>(0, Allocator.Persistent) : coarseLandmarks;
                 nodes = new NativeArray<Node>(capacity, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
                 heap = new NativeArray<int>(capacity, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
                 lookup = new NativeParallelHashMap<int, int>(capacity, Allocator.Persistent);
@@ -67,6 +72,7 @@ namespace Rvo
             state[0] = s;
             job = new SearchJob { Nodes = nodes, Heap = heap, Lookup = lookup, State = state,
                 EdgeCache = coarseEdges, CacheEdges = volume == fineMap.Coarse,
+                Landmarks = landmarks, UseLandmarks = volume == fineMap.Coarse && landmarks.IsCreated && landmarks.Length > 0,
                 Query = volume == fineMap ? fineQuery : coarseQuery, Resolution = map.Resolution,
                 CellSize = map.CellSize, Source = source, Target = target, Weight = heuristicWeight,
                 PenaltyCenter = congestionCenter, PenaltyRadius = congestionRadius };
@@ -96,6 +102,8 @@ namespace Rvo
         private bool CrossesPenalty(float3 a, float3 b) => SearchJob.Crosses(a, b, penaltyCenter, penaltyRadius);
         public void Dispose()
         {
+            if (ownsLandmarks && landmarks.IsCreated) landmarks.Dispose();
+            landmarks = default;
             if (nodes.IsCreated) nodes.Dispose(); if (heap.IsCreated) heap.Dispose();
             if (lookup.IsCreated) lookup.Dispose(); if (state.IsCreated) state.Dispose();
             if (coarseEdges.IsCreated) coarseEdges.Dispose(); coarseEdges = default;
@@ -111,6 +119,8 @@ namespace Rvo
             public NativeArray<uint> EdgeCache;
             public bool CacheEdges;
             [ReadOnly] public VolumeQuery Query;
+            [ReadOnly] public NativeArray<float> Landmarks;
+            public bool UseLandmarks;
             public int Resolution, Source, Target, Budget;
             public float CellSize, Weight, PenaltyRadius;
             public float3 PenaltyCenter;
@@ -118,7 +128,17 @@ namespace Rvo
             private int3 targetCell;
             private int3 Cell(int index) => new int3(index % Resolution, index / Resolution % Resolution, index / (Resolution * Resolution));
             private float3 Center(int3 c) => Query.Min + ((float3)c + 0.5f) * CellSize;
-            private float Heuristic(int cell) => VolumePathfinder.GridDistance(Cell(cell) - targetCell) * CellSize;
+            private float Heuristic(int cell)
+            {
+                float lower = VolumePathfinder.GridDistance(Cell(cell) - targetCell) * CellSize;
+                if (UseLandmarks)
+                {
+                    int count = Resolution * Resolution * Resolution;
+                    for (int k = 0; k < VolumeLandmarks.LandmarkCount; k++)
+                        lower = math.max(lower, VolumeLandmarks.Bound(Landmarks[k * count + cell], Landmarks[k * count + Target]));
+                }
+                return lower;
+            }
             public void Execute()
             {
                 s = State[0]; targetCell = Cell(Target);

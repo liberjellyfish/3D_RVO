@@ -1,6 +1,10 @@
-# 仿真架构、Phase 2 基线与 Phase 3 迁移边界
+# 仿真架构、Phase 3 实现与表现层边界
 
-2026-09-29：Phase 2 经用户后续人工验证后接受收尾，Full3D 尚未实现。当前实现描述保留；计划中的体素导航、XYZ 查询/ORCA/积分与迁移清单见 [PHASE3_PLAN.md](PHASE3_PLAN.md)，GPU/VAT/海洋接口约定见 [PHASE4_PRESENTATION.md](PHASE4_PRESENTATION.md)。新阶段仍复用同一 World 和 AgentStorage，本轮只更新文档。
+2026-10-01：Full3D 已实现并进入收尾。`Phase3ModuleFactory` 装配 `VolumeNavigation`、三维邻居、`VolumeAvoidanceSolver` 和 `VolumeEulerIntegrator`，复用同一 World 和 AgentStorage。下文 Phase 1/2 描述及迁移表保留为历史设计；当前验证见 [Phase 3 收尾记录](VERIFICATION_P3_CLOSEOUT.md)，GPU/VAT/海洋接口约定见 [PHASE4_PRESENTATION.md](PHASE4_PRESENTATION.md)。
+
+三维导航由静态细/粗图、预算队列和池化路径组成。`VolumeLandmarks` 只为小型粗图生成 4 份 ALT 距离表，托管表随地图缓存；每个 Jobs 世界拥有一份只读 Native 拷贝，各搜索槽借用，释放槽后再释放共享表。细图回退不使用粗图下界。拥堵代价仍逐请求计算，不写入静态距离表。
+
+`VolumePresenter` 读取提交后的坐标，以目标距离判断当前到达；状态变化时更新既有球体的顶点颜色。它不更改求解状态或物理半径，也不把速度为零视为到达。Phase 4 可替换球体绘制，调试线和核心保持独立。
 
 Phase 2 通行协调扩展：`GridNavigation` 持有 `TrafficRecovery`，在路径跟随之后修改 preferred 与本步优先级，在局部退让之外按预算发起拥堵重规划；`GridAvoidanceSolver` 使用互补责任构造动态平面，静态约束与扫掠证书保持独立。失败请求限频轮转恢复，导航余量内只改变 preferred、不直接修改位置。表现层目标十字独立于路径开关，并缓存静态几何。详见 [交通与恢复设计](PHASE2_TRAFFIC.md)。
 

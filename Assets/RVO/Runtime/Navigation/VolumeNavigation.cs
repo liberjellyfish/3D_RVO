@@ -38,6 +38,7 @@ namespace Rvo
         private NativeArray<float3> points;
         private NativeArray<int> counts, advances;
         private NativeArray<float4> penalties;
+        private NativeArray<float> coarseLandmarks;
         private int head, tail, queuedCount, nextSlot, recoveryCursor, retryCursor;
         private bool disposed;
         public VolumePathInfo Path(int i) => paths[i];
@@ -54,6 +55,10 @@ namespace Rvo
             scratch = new float3[settings.SearchCapacity + 2];
             try
             {
+                if (settings.UseCoarseRoutes && settings.HeuristicWeight > 1 && map.Coarse != null) map.Coarse.PrepareLandmarks();
+                // 每个世界一份原生表，搜索槽只借用；释放时先槽、后表。
+                if (backend == ExecutionBackend.JobsBurst)
+                    coarseLandmarks = new NativeArray<float>(map.Coarse?.Landmarks?.Distances ?? Array.Empty<float>(), Allocator.Persistent);
                 Query = new VolumeQuery { Nodes = new NativeArray<VolumeBvhNode>(map.Nodes, Allocator.Persistent), Min = map.Min, Max = map.Max, Clearance = map.ClearanceRadius };
                 if (backend == ExecutionBackend.JobsBurst && map.Coarse != null)
                     coarseQuery = new VolumeQuery { Nodes = new NativeArray<VolumeBvhNode>(map.Coarse.Nodes, Allocator.Persistent),
@@ -61,7 +66,7 @@ namespace Rvo
                 for (int i = 0; i < searches.Length; i++)
                 {
                     searches[i] = backend == ExecutionBackend.JobsBurst
-                        ? (IVolumePathfinder)new BurstVolumePathfinder(settings.SearchCapacity, map, Query, coarseQuery)
+                        ? (IVolumePathfinder)new BurstVolumePathfinder(settings.SearchCapacity, map, Query, coarseQuery, coarseLandmarks)
                         : new VolumePathfinder(settings.SearchCapacity);
                     active[i] = -1;
                 }
@@ -227,6 +232,7 @@ namespace Rvo
         {
             if (disposed) return; disposed = true;
             for (int i = 0; i < searches.Length; i++) searches[i]?.Dispose();
+            if (coarseLandmarks.IsCreated) coarseLandmarks.Dispose();
             if (coarseQuery.Nodes.IsCreated) coarseQuery.Nodes.Dispose(); coarseQuery = default;
             var query = Query; if (query.Nodes.IsCreated) query.Nodes.Dispose(); Query = default;
             if (points.IsCreated) points.Dispose(); if (counts.IsCreated) counts.Dispose();

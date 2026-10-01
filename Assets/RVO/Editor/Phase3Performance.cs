@@ -8,6 +8,40 @@ namespace Rvo.Editor
 {
     public static class Phase3Performance
     {
+        [MenuItem("Tools/RVO/Profile Phase 3 startup (1024 agents)")]
+        public static void RunStartup()
+        {
+            if (Application.isPlaying) throw new InvalidOperationException("Exit Play before standalone profiling.");
+            var profile = AssetDatabase.LoadAssetAtPath<SimulationProfile>(Phase3DemoBuilder.ProfilePath);
+            var map = profile.BakedVolume.Load(profile.Volume, profile.Scenario.Radius);
+            var settings = profile.Simulation; settings.AgentCount = 16;
+            var warmModules = Phase3ModuleFactory.Create(settings, profile.Scenario, profile.Volume, map, out _, out _);
+            using (var warm = new SimulationWorld(settings, profile.Scenario, warmModules)) warm.Step();
+            // 重载地图，避免预热世界掩盖共享索引的首次构建成本。
+            map = profile.BakedVolume.Load(profile.Volume, profile.Scenario.Radius);
+            settings.AgentCount = 1024;
+            var timer = System.Diagnostics.Stopwatch.StartNew();
+            var modules = Phase3ModuleFactory.Create(settings, profile.Scenario, profile.Volume, map, out var navigation, out var solver);
+            using (var world = new SimulationWorld(settings, profile.Scenario, modules))
+            {
+                double setup = timer.Elapsed.TotalMilliseconds;
+                var metrics = new VolumeRunMetrics(settings.AgentCount);
+                var times = new System.Collections.Generic.List<double>(); long expanded = 0;
+                do
+                {
+                    world.Step(); metrics.Observe(world, navigation, solver);
+                    times.Add(world.LastMetrics.TotalSimulationMilliseconds); expanded += navigation.LastExpandedNodes;
+                } while (metrics.NeverReady > 0 && world.Tick < 6000 && timer.Elapsed.TotalSeconds < 90);
+                times.Sort();
+                string folder = "Documentation/RVO/Verification/Phase3/Startup"; Directory.CreateDirectory(folder);
+                bool sync = Array.IndexOf(Environment.GetCommandLineArgs(), "--burst-force-sync-compilation") >= 0;
+                File.WriteAllText(folder + "/environment.txt", $"Unity {Application.unityVersion}; CPU {SystemInfo.processorType}; seed {profile.Scenario.Seed}; obstacles {map.ObstacleCount}; backend {settings.Backend}; Burst sync={sync}\n" +
+                    "No rendering; separate warmup world; cold landmark tables; map decode and Burst compilation excluded; setup included in wall time.\n");
+                string report = "agents,ticks,ready_p50_sim_s,ready_p95_sim_s,ready_max_sim_s,setup_ms,wall_including_setup_ms,tick_p95_ms,tick_max_ms,expanded,never_ready,failed,fallbacks\n" +
+                    FormattableString.Invariant($"1024,{world.Tick},{metrics.ReadyPercentile(0.5,settings.FixedDeltaTime):F3},{metrics.ReadyPercentile(0.95,settings.FixedDeltaTime):F3},{metrics.ReadyPercentile(1,settings.FixedDeltaTime):F3},{setup:F3},{timer.Elapsed.TotalMilliseconds:F3},{times[(int)(times.Count*0.95)]:F3},{times[times.Count-1]:F3},{expanded},{metrics.NeverReady},{navigation.FailedCount},{navigation.CoarseFallbacks}\n");
+                File.WriteAllText(folder + "/summary.csv", report); Debug.Log(report);
+            }
+        }
         public static void RunDenseDemo()
         {
             var profile = AssetDatabase.LoadAssetAtPath<SimulationProfile>(Phase3DemoBuilder.ProfilePath);

@@ -24,6 +24,7 @@ namespace Rvo
         public long PortalCrossings { get; private set; }
         public VolumeRunMetrics(int count)
         {
+            NeverReady = count;
             firstReady = new long[count]; firstArrival = new long[count]; waiting = new float[count];
             for (int i = 0; i < count; i++) firstReady[i] = firstArrival[i] = -1;
         }

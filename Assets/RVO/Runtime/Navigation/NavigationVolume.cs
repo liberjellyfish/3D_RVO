@@ -16,7 +16,10 @@ namespace Rvo
         public int LargestComponent { get; }
         public int FreeCells { get; }
         public NavigationVolume Coarse { get; internal set; }
-        public long StorageBytes => labels.LongLength * 4 + Boxes.Length * 24L + Nodes.Length * 32L + (Coarse?.StorageBytes ?? 0);
+        internal VolumeLandmarks Landmarks { get; private set; }
+        internal void PrepareLandmarks() { if (Landmarks == null) Landmarks = new VolumeLandmarks(this); }
+        public long StorageBytes => labels.LongLength * 4 + Boxes.Length * 24L + Nodes.Length * 32L +
+            (Landmarks?.Distances.LongLength ?? 0) * sizeof(float) + (Coarse?.StorageBytes ?? 0);
         internal readonly int[] labels;
         internal readonly VolumeBox[] Boxes;
         internal readonly VolumeBvhNode[] Nodes;

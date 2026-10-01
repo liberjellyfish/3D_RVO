@@ -1,0 +1,2 @@
+Unity 6000.0.63f1; CPU 12th Gen Intel(R) Core(TM) i7-12650H; seed 7; obstacles 104; backend JobsBurst; Burst sync=True
+No rendering; separate warmup world; cold landmark tables; map decode and Burst compilation excluded; setup included in wall time.

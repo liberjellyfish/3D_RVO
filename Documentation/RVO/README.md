@@ -1,10 +1,19 @@
-# Unity 6 RVO — 2D 阶段收尾，进入 Phase 3 规划
+# Unity 6 RVO — Phase 3 收尾，下一轮进入渲染专题
 
-已实现 **None / VO / RVO / ORCA、BruteForce / SpatialHash / KdTree、Reference / JobsBurst**。Phase 2 使用离线烘焙地图、ALT 加权 A* 与直线捷径、预算调度、路径跟随、静态 BVH、ORCA 和局部扫掠安全证书。数据为 float3，活动空间仍为 XZ 圆盘，不使用 Rigidbody/Collider 位置纠正。
+已实现二维 **None / VO / RVO / ORCA、BruteForce / SpatialHash / KdTree、Reference / JobsBurst**；Phase 3 已实现真正 XYZ 体素导航、球形邻居、3D ORCA、连续扫掠安全检查和恢复。Full3D 支持 None / ORCA 与 BruteForce / SpatialHash。两个阶段共用 World / AgentStorage，不使用 Rigidbody/Collider 位置纠正。
 
 2026-09-29：用户完成后续人工验证，反馈 256 agent 约 1–2 分钟完成，1024 agent 在高频路径长时间滞留后约 20 分钟完成。按用户决定，2D 阶段告一段落；这些是整体完成耗时的观察，不是 A* 耗时或正式性能报告。1024 的拥堵长尾保留为已知限制，不阻塞 3D 开工。
 
-**下一步以 [Phase 3 详细规划](PHASE3_PLAN.md) 为准**：先做真实 XYZ 静态体素寻路，再接三维邻居与 ORCA，最后完成组合安全、三维恢复及规模收尾。轻量调试显示贯穿实施；GPU/VAT/海洋只预留[表现层契约与后续路线](PHASE4_PRESENTATION.md)。本次仅更新文档，Full3D 尚未实现，也未运行新的验证。
+2026-10-01：本轮收尾增加到达标识与共享粗图 ALT 启发式；保留原预算和安全检查。验证与启动延迟对照见 [Phase 3 收尾记录](VERIFICATION_P3_CLOSEOUT.md)。下一轮按 [Phase 4 表现层路线](PHASE4_PRESENTATION.md) 开始简单实例网格，再推进间接绘制、VAT 与海洋。
+
+## Phase 3 操作
+
+1. 打开 `Assets/RVO/Demo/Phase3_Volume.unity`，Play，选择 16 / 256 / 1024。默认地图 256³、104 个障碍、两个高低错开的穿墙口。
+2. **白色球体 + 深色腰带表示当前已到达**；彩色表示尚未到达，包括寻路排队、行进、拥堵。标识与路径开关独立，离开终点后恢复原色。
+3. `First route ready` 区分首次寻路积压与后续拥堵；`Pending` 也包括恢复重规划。首路径就绪不等于实际开始移动，移动仍受局部避障约束。
+4. `Follow selected` 持续跟随；右键旋转、滚轮缩放、中键平移。`Fit volume` 返回全景。路径/切片/速度平面按需打开。
+5. 默认每 Tick 4096 节点、16 个完成请求、两个搜索槽不变。粗图的 4 地标表在该地图首次使用时建立，Reset 复用；无须重烘焙资产。关闭粗图或精确细图对照仍可使用原几何启发式。
+6. `Tools > RVO > Profile Phase 3 startup (1024 agents)` 单独测全员首次路径就绪；性能报告区分仿真秒、CPU Tick 与无渲染墙钟，不把它们当作实际 FPS。
 
 ## Phase 2 操作
 

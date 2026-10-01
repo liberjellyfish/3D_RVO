@@ -89,6 +89,8 @@ namespace Rvo
                 {
                     GUILayout.BeginHorizontal(); for (int tier = 0; tier < 3; tier++) if (GUILayout.Button(Profile.CountForTier(tier).ToString())) requestedTier = tier; GUILayout.EndHorizontal();
                     GUILayout.Label($"Current / first arrival: {Metrics.CurrentArrived} / {Metrics.FirstArrived}");
+                    GUILayout.Label("Arrived: white + dark belt | travelling / blocked: color");
+                    GUILayout.Label($"First route ready: {World.Settings.AgentCount - Metrics.NeverReady} / {World.Settings.AgentCount}");
                     GUILayout.Label($"Pending {Navigation.PendingCount} | failed {Navigation.FailedCount} | expanded {Navigation.LastExpandedNodes}");
                     GUILayout.Label($"Step {World.LastMetrics.TotalSimulationMilliseconds:F2} ms | wait max {Metrics.LongestWait:F1}s");
                     GUILayout.Label($"Safety scale {Solver.LastSafetyScale:F3} | limited {Solver.LastLimitedAgents} | pair tests {Solver.LastSafetyPairChecks}");

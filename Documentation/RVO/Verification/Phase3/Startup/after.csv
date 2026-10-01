@@ -1,0 +1,2 @@
+agents,ticks,ready_p50_sim_s,ready_p95_sim_s,ready_max_sim_s,setup_ms,wall_including_setup_ms,tick_p95_ms,tick_max_ms,expanded,never_ready,failed,fallbacks
+1024,283,4.967,8.933,9.400,45.120,2222.635,11.006,25.182,1158952,0,0,0

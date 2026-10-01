@@ -296,6 +296,55 @@ namespace Rvo.Tests
             }
         }
         [Test]
+        public void LandmarkBoundsAndBothSearchBackendsMatchIndependentShortestPaths()
+        {
+            var settings = Settings();
+            var map = VolumeBake.Bake(settings, 0.2f,
+                new[] { new VolumeBox(new float3(-1, -6, -6), new float3(1, 2, 6)) });
+            map.PrepareLandmarks();
+            var owner = Empty(); owner.Coarse = map;
+            using (var nav = new VolumeNavigation(settings, map, 1))
+            using (var ownerNav = new VolumeNavigation(settings, owner, 1))
+            using (var distances = new NativeArray<float>(map.Landmarks.Distances, Allocator.TempJob))
+            using (var native = new BurstVolumePathfinder(8192, owner, ownerNav.Query, nav.Query, distances))
+            {
+                var reference = new VolumePathfinder(8192); var points = new float3[8194];
+                for (int trial = 0; trial < 4; trial++)
+                {
+                    float3 from = new float3(-4.5f, trial - 3.5f, 0.5f), goal = new float3(4.5f, -3.5f, trial - 1.5f);
+                    int source = map.Anchor(from), target = map.Anchor(goal);
+                    float exact = Dijkstra(map, source, target);
+                    Assert.That(map.Landmarks.LowerBound(source, target), Is.LessThanOrEqualTo(exact + 0.0001f));
+                    reference.Begin(map, from, goal, 1, false); native.Begin(map, from, goal, 1, false);
+                    reference.Advance(8192);
+                    for (int iteration = 0; iteration < 8192 && native.Status == VolumePathStatus.Pending; iteration++)
+                        Assert.That(native.Advance(7), Is.LessThanOrEqualTo(7));
+                    Assert.That(native.Status, Is.EqualTo(VolumePathStatus.Ready));
+                    Assert.That(reference.GraphCost, Is.EqualTo(exact).Within(0.0002f));
+                    Assert.That(native.GraphCost, Is.EqualTo(exact).Within(0.0002f));
+                    int length = native.CopyPath(points);
+                    for (int i = 1; i < length; i++) Assert.That(IndependentClear(map, points[i - 1], points[i]), Is.True);
+                }
+                // 回退到细图时必须停止使用粗图距离表，且两次释放不应触发容器错误。
+                native.Begin(owner, new float3(-4.5f), new float3(4.5f), 1, false);
+                native.Advance(8192);
+                Assert.That(native.GraphCost, Is.EqualTo(9 * math.sqrt(3)).Within(0.0002f));
+                native.Dispose();
+            }
+        }
+        [Test]
+        public void LandmarkBoundsIgnoreDisconnectedComponents()
+        {
+            var settings = Settings();
+            var map = VolumeBake.Bake(settings, 0.2f,
+                new[] { new VolumeBox(new float3(-1, -6, -6), new float3(1, 6, 6)) });
+            map.PrepareLandmarks();
+            int a = map.Anchor(new float3(-4.5f, 0.5f, 0.5f)), b = map.Anchor(new float3(4.5f, 0.5f, 0.5f));
+            Assert.That(map.Landmarks.LowerBound(a, b), Is.Zero);
+            var search = new VolumePathfinder(8192); search.Begin(map, map.Center(a), map.Center(b));
+            Assert.That(search.Status, Is.EqualTo(VolumePathStatus.NoPath));
+        }
+        [Test]
         public void FineEndpointConnectsSafelyPastCoarseInflation()
         {
             var settings = Settings(64);
@@ -309,9 +358,10 @@ namespace Rvo.Tests
             for (int i = 1; i < length; i++) Assert.That(IndependentClear(map, points[i - 1], points[i]), Is.True);
             using (var nav = new VolumeNavigation(settings, map, 1))
             using (var coarseNodes = new NativeArray<VolumeBvhNode>(GetNodes(map.Coarse), Allocator.TempJob))
+            using (var landmarks = new NativeArray<float>(map.Coarse.Landmarks.Distances, Allocator.TempJob))
             {
                 var coarseQuery = new VolumeQuery { Nodes = coarseNodes, Min = map.Coarse.Min, Max = map.Coarse.Max, Clearance = map.Coarse.ClearanceRadius };
-                using (var native = new BurstVolumePathfinder(8192, map, nav.Query, coarseQuery))
+                using (var native = new BurstVolumePathfinder(8192, map, nav.Query, coarseQuery, landmarks))
                     for (int trial = 0; trial < 4; trial++)
                     {
                         float3 a = trial % 2 == 0 ? from : goal, b = trial % 2 == 0 ? goal : from;
