@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="18" result="Passed" total="18" passed="18" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-30 02:47:55Z" end-time="2026-09-30 02:47:59Z" duration="3.1865634">
+  <test-suite type="TestSuite" id="1000" name="3D_RVO" fullname="3D_RVO" runstate="Runnable" testcasecount="107" result="Passed" start-time="2026-09-30 02:47:55Z" end-time="2026-09-30 02:47:59Z" duration="3.186563" total="18" passed="18" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1138" name="Rvo.Tests.EditMode.dll" fullname="D:/unityhub/tries/3D_RVO/.utmp/Phase2Compile/Library/ScriptAssemblies/Rvo.Tests.EditMode.dll" runstate="Runnable" testcasecount="107" result="Passed" start-time="2026-09-30 02:47:55Z" end-time="2026-09-30 02:47:59Z" duration="3.179156" total="18" passed="18" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="11868" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1139" name="Rvo" fullname="Rvo" runstate="Runnable" testcasecount="107" result="Passed" start-time="2026-09-30 02:47:55Z" end-time="2026-09-30 02:47:59Z" duration="3.177955" total="18" passed="18" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1140" name="Tests" fullname="Rvo.Tests" runstate="Runnable" testcasecount="107" result="Passed" start-time="2026-09-30 02:47:55Z" end-time="2026-09-30 02:47:59Z" duration="3.176968" total="18" passed="18" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1107" name="Phase3VolumeTests" fullname="Rvo.Tests.Phase3VolumeTests" classname="Rvo.Tests.Phase3VolumeTests" runstate="Runnable" testcasecount="18" result="Passed" start-time="2026-09-30 02:47:55Z" end-time="2026-09-30 02:47:59Z" duration="3.175156" total="18" passed="18" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1108" name="BakeRoundTripChecksRadiusAndIntegrity" fullname="Rvo.Tests.Phase3VolumeTests.BakeRoundTripChecksRadiusAndIntegrity" methodname="BakeRoundTripChecksRadiusAndIntegrity" classname="Rvo.Tests.Phase3VolumeTests" runstate="Runnable" seed="167770229" result="Passed" start-time="2026-09-30 02:47:55Z" end-time="2026-09-30 02:47:55Z" duration="0.023996" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1109" name="BarrierRequiresYMotionAndEverySmoothedSegmentIsClear" fullname="Rvo.Tests.Phase3VolumeTests.BarrierRequiresYMotionAndEverySmoothedSegmentIsClear" methodname="BarrierRequiresYMotionAndEverySmoothedSegmentIsClear" classname="Rvo.Tests.Phase3VolumeTests" runstate="Runnable" seed="1280949063" result="Passed" start-time="2026-09-30 02:47:55Z" end-time="2026-09-30 02:47:56Z" duration="0.048163" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1124" name="BurstSearchMatchesReferenceAcrossBudgetsPenaltiesAndReuse" fullname="Rvo.Tests.Phase3VolumeTests.BurstSearchMatchesReferenceAcrossBudgetsPenaltiesAndReuse" methodname="BurstSearchMatchesReferenceAcrossBudgetsPenaltiesAndReuse" classname="Rvo.Tests.Phase3VolumeTests" runstate="Runnable" seed="1080178073" result="Passed" start-time="2026-09-30 02:47:56Z" end-time="2026-09-30 02:47:56Z" duration="0.084792" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1111" name="BvhAndNativeSweepAgreeWithIndependentSlabs" fullname="Rvo.Tests.Phase3VolumeTests.BvhAndNativeSweepAgreeWithIndependentSlabs" methodname="BvhAndNativeSweepAgreeWithIndependentSlabs" classname="Rvo.Tests.Phase3VolumeTests" runstate="Runnable" seed="1637222012" result="Passed" start-time="2026-09-30 02:47:56Z" end-time="2026-09-30 02:47:56Z" duration="0.017823" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1120" name="CancelGoalDoesNotCommitOldSearchAndPureVerticalStaticOnlyArrives" fullname="Rvo.Tests.Phase3VolumeTests.CancelGoalDoesNotCommitOldSearchAndPureVerticalStaticOnlyArrives" methodname="CancelGoalDoesNotCommitOldSearchAndPureVerticalStaticOnlyArrives" classname="Rvo.Tests.Phase3VolumeTests" runstate="Runnable" seed="1522310865" result="Passed" start-time="2026-09-30 02:47:56Z" end-time="2026-09-30 02:47:56Z" duration="0.010658" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1123" name="CoarseBakedRoutesRemainClearInFineGeometry" fullname="Rvo.Tests.Phase3VolumeTests.CoarseBakedRoutesRemainClearInFineGeometry" methodname="CoarseBakedRoutesRemainClearInFineGeometry" classname="Rvo.Tests.Phase3VolumeTests" runstate="Runnable" seed="1636570716" result="Passed" start-time="2026-09-30 02:47:56Z" end-time="2026-09-30 02:47:56Z" duration="0.023445" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1126" name="DenseDemoKeepsCrossVolumeRoutesAndForcesDetours" fullname="Rvo.Tests.Phase3VolumeTests.DenseDemoKeepsCrossVolumeRoutesAndForcesDetours" methodname="DenseDemoKeepsCrossVolumeRoutesAndForcesDetours" classname="Rvo.Tests.Phase3VolumeTests" runstate="Runnable" seed="599338356" result="Passed" start-time="2026-09-30 02:47:56Z" end-time="2026-09-30 02:47:57Z" duration="1.459533" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1110" name="DisconnectedInvalidAndCapacityAreDistinctFromPending" fullname="Rvo.Tests.Phase3VolumeTests.DisconnectedInvalidAndCapacityAreDistinctFromPending" methodname="DisconnectedInvalidAndCapacityAreDistinctFromPending" classname="Rvo.Tests.Phase3VolumeTests" runstate="Runnable" seed="1781039089" result="Passed" start-time="2026-09-30 02:47:57Z" end-time="2026-09-30 02:47:57Z" duration="0.001621" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1127" name="FactoryRejectsUnsupportedDimensionAlgorithms" fullname="Rvo.Tests.Phase3VolumeTests.FactoryRejectsUnsupportedDimensionAlgorithms" methodname="FactoryRejectsUnsupportedDimensionAlgorithms" classname="Rvo.Tests.Phase3VolumeTests" runstate="Runnable" seed="2009526075" result="Passed" start-time="2026-09-30 02:47:57Z" end-time="2026-09-30 02:47:57Z" duration="0.001432" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1125" name="FineEndpointConnectsSafelyPastCoarseInflation" fullname="Rvo.Tests.Phase3VolumeTests.FineEndpointConnectsSafelyPastCoarseInflation" methodname="FineEndpointConnectsSafelyPastCoarseInflation" classname="Rvo.Tests.Phase3VolumeTests" runstate="Runnable" seed="1957303337" result="Passed" start-time="2026-09-30 02:47:57Z" end-time="2026-09-30 02:47:57Z" duration="0.020360" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-suite type="ParameterizedMethod" id="1114" name="HashMatchesBruteForceIncludingVerticalRangeAndKTruncation" fullname="Rvo.Tests.Phase3VolumeTests.HashMatchesBruteForceIncludingVerticalRangeAndKTruncation" classname="Rvo.Tests.Phase3VolumeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-30 02:47:57Z" end-time="2026-09-30 02:47:57Z" duration="0.027142" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1112" name="HashMatchesBruteForceIncludingVerticalRangeAndKTruncation(Reference)" fullname="Rvo.Tests.Phase3VolumeTests.HashMatchesBruteForceIncludingVerticalRangeAndKTruncation(Reference)" methodname="HashMatchesBruteForceIncludingVerticalRangeAndKTruncation" classname="Rvo.Tests.Phase3VolumeTests" runstate="Runnable" seed="1462735856" result="Passed" start-time="2026-09-30 02:47:57Z" end-time="2026-09-30 02:47:57Z" duration="0.018098" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1113" name="HashMatchesBruteForceIncludingVerticalRangeAndKTruncation(JobsBurst)" fullname="Rvo.Tests.Phase3VolumeTests.HashMatchesBruteForceIncludingVerticalRangeAndKTruncation(JobsBurst)" methodname="HashMatchesBruteForceIncludingVerticalRangeAndKTruncation" classname="Rvo.Tests.Phase3VolumeTests" runstate="Runnable" seed="1939186526" result="Passed" start-time="2026-09-30 02:47:57Z" end-time="2026-09-30 02:47:57Z" duration="0.004215" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-case id="1115" name="OrcaPairPlanesAreReciprocalAndConeAxisIsFinite" fullname="Rvo.Tests.Phase3VolumeTests.OrcaPairPlanesAreReciprocalAndConeAxisIsFinite" methodname="OrcaPairPlanesAreReciprocalAndConeAxisIsFinite" classname="Rvo.Tests.Phase3VolumeTests" runstate="Runnable" seed="2047757166" result="Passed" start-time="2026-09-30 02:47:57Z" end-time="2026-09-30 02:47:57Z" duration="0.004192" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1121" name="ReferenceAndBurstWorldsAgreeAcrossStaticAndDynamicStages" fullname="Rvo.Tests.Phase3VolumeTests.ReferenceAndBurstWorldsAgreeAcrossStaticAndDynamicStages" methodname="ReferenceAndBurstWorldsAgreeAcrossStaticAndDynamicStages" classname="Rvo.Tests.Phase3VolumeTests" runstate="Runnable" seed="53702854" result="Passed" start-time="2026-09-30 02:47:57Z" end-time="2026-09-30 02:47:59Z" duration="1.409197" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1116" name="VelocityBallProjectionAndDynamicRelaxationPreserveHardPlane" fullname="Rvo.Tests.Phase3VolumeTests.VelocityBallProjectionAndDynamicRelaxationPreserveHardPlane" methodname="VelocityBallProjectionAndDynamicRelaxationPreserveHardPlane" classname="Rvo.Tests.Phase3VolumeTests" runstate="Runnable" seed="1966597058" result="Passed" start-time="2026-09-30 02:47:59Z" end-time="2026-09-30 02:47:59Z" duration="0.001367" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1122" name="VelocityOptimizerMatchesEnumeratedActiveSets" fullname="Rvo.Tests.Phase3VolumeTests.VelocityOptimizerMatchesEnumeratedActiveSets" methodname="VelocityOptimizerMatchesEnumeratedActiveSets" classname="Rvo.Tests.Phase3VolumeTests" runstate="Runnable" seed="14169870" result="Passed" start-time="2026-09-30 02:47:59Z" end-time="2026-09-30 02:47:59Z" duration="0.006437" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-suite type="ParameterizedMethod" id="1119" name="VerticalWorldMovesAndSafetyCoversNeighborsOutsideK" fullname="Rvo.Tests.Phase3VolumeTests.VerticalWorldMovesAndSafetyCoversNeighborsOutsideK" classname="Rvo.Tests.Phase3VolumeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-30 02:47:59Z" end-time="2026-09-30 02:47:59Z" duration="0.018033" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1117" name="VerticalWorldMovesAndSafetyCoversNeighborsOutsideK(Reference)" fullname="Rvo.Tests.Phase3VolumeTests.VerticalWorldMovesAndSafetyCoversNeighborsOutsideK(Reference)" methodname="VerticalWorldMovesAndSafetyCoversNeighborsOutsideK" classname="Rvo.Tests.Phase3VolumeTests" runstate="Runnable" seed="641521389" result="Passed" start-time="2026-09-30 02:47:59Z" end-time="2026-09-30 02:47:59Z" duration="0.008002" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1118" name="VerticalWorldMovesAndSafetyCoversNeighborsOutsideK(JobsBurst)" fullname="Rvo.Tests.Phase3VolumeTests.VerticalWorldMovesAndSafetyCoversNeighborsOutsideK(JobsBurst)" methodname="VerticalWorldMovesAndSafetyCoversNeighborsOutsideK" classname="Rvo.Tests.Phase3VolumeTests" runstate="Runnable" seed="382906005" result="Passed" start-time="2026-09-30 02:47:59Z" end-time="2026-09-30 02:47:59Z" duration="0.008652" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: C:/Users/20505/AppData/LocalLow/DefaultCompany/3D_RVO\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

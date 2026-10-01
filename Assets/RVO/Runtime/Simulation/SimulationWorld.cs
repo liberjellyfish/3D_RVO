@@ -43,7 +43,7 @@ namespace Rvo
                 Require(WorldState.Ready);
                 if (Tick == 0) throw new InvalidOperationException("尚未执行仿真步骤。");
                 return new StepDebugView(agents.Previous, neighbors.Read, agents.Preferred.AsReadOnly(), agents.Status,
-                        modules.Avoidance is OrcaSolver2D orca ? orca.Constraints : default);
+                        modules.Avoidance is IPlanarConstraintDebugSource debug ? debug.Constraints : default);
             }
         }
 
@@ -156,6 +156,10 @@ namespace Rvo
                      math.abs(read.Goals[i].y - settings.PlaneHeight) > settings.Epsilon ||
                      math.abs(read.Velocities[i].y) > settings.Epsilon))
                     throw new ArgumentException($"Agent {i} is not on the configured XZ plane.");
+                if (settings.Dimension == SimulationDimension.Full3D)
+                    for (int j = 0; j < i; j++)
+                        if (math.distance(read.Positions[i], read.Positions[j]) < p.Radius + read.Parameters[j].Radius - 0.0001f)
+                            throw new ArgumentException($"Full3D initial spheres {j} and {i} overlap.");
             }
         }
     }

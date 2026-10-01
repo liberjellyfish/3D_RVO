@@ -6,7 +6,7 @@ using Unity.Mathematics;
 
 namespace Rvo
 {
-    public sealed class OrcaSolver2D : IAvoidanceSolver
+    public sealed class OrcaSolver2D : IAvoidanceSolver, IPlanarConstraintDebugSource
     {
         public string Name => "ORCA 2D";
         public bool IsImplemented => true;

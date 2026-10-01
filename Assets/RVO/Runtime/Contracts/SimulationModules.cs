@@ -52,4 +52,9 @@ namespace Rvo
         // Called after CompleteStep. Rendering must not change simulation state or retain views.
         void Present(in AgentReadView agents);
     }
+
+    public interface IPlanarConstraintDebugSource
+    {
+        NativeArray<VelocityHalfPlane2D>.ReadOnly Constraints { get; }
+    }
 }

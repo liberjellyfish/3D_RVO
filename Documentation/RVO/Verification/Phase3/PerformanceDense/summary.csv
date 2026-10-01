@@ -1,0 +1,5 @@
+Unity 6000.0.63f1; 12th Gen Intel(R) Core(TM) i7-12650H; Burst sync=True; separate warmup world; no rendering; seed 7; obstacles 104
+agents,ticks,p50_ms,p95_ms,p99_ms,navigation_mean_ms,neighbor_mean_ms,avoidance_mean_ms,expanded,requests,coarse,fallbacks,never_ready,first_arrived,gc_bytes
+16,600,0.1723,3.9297,12.7863,0.5541,0.0978,0.0296,188240,24,24,0,0,0,0
+256,600,4.3186,6.8336,14.4322,3.2360,1.0187,0.2560,2337613,328,328,0,0,0,0
+1024,600,5.0859,7.7942,14.3576,3.4606,1.3033,0.6339,2457600,1071,320,0,704,0,0

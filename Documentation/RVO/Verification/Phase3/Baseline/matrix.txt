@@ -1,0 +1,7 @@
+Unity 6000.0.63f1; CPU 12th Gen Intel(R) Core(TM) i7-12650H; RAM 16115 MiB
+Editor batch=True; seed=7; volume=256³; mapBytes=67109536
+Predeclared tick limit=18000; wall cap=60; no rendering; Burst synchronous compilation requested.
+tier,backend,stop,ticks,sim_s,wall_s,first_arrived,current_arrived,never_ready,ready_p50_s,ready_p95_s,ready_max_s,all_first_s,all_current_s,max_wait_s,core_p50_ms,core_p95_ms,core_p99_ms,gc_bytes,requests,recovery_replans,limited_agent_ticks,sampled_collision_pairs,portal_crossings
+16,JobsBurst,WallCapIncomplete,674,22.467,60.096,0,0,16,NaN,NaN,NaN,NaN,NaN,0.000,79.174,141.466,150.734,0,18,2,0,0,0
+256,JobsBurst,WallCapIncomplete,681,22.700,60.077,0,0,256,NaN,NaN,NaN,NaN,NaN,0.000,77.700,131.729,141.627,0,258,2,0,0,0
+1024,JobsBurst,WallCapIncomplete,628,20.933,60.067,0,0,1023,0.000,0.000,0.000,NaN,NaN,0.000,84.567,145.119,161.884,0,1026,2,0,0,1

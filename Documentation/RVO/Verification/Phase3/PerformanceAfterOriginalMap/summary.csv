@@ -1,0 +1,5 @@
+Unity 6000.0.63f1; 12th Gen Intel(R) Core(TM) i7-12650H; Burst sync; no rendering; seed 7; obstacles 8
+agents,ticks,p50_ms,p95_ms,p99_ms,navigation_mean_ms,neighbor_mean_ms,avoidance_mean_ms,expanded,requests,coarse,fallbacks,never_ready,first_arrived,gc_bytes
+16,600,0.5931,92.5812,121.1371,8.8775,0.3301,0.1363,190410,52,52,0,0,0,0
+256,600,7.8243,10.0576,11.8938,6.0492,1.0249,0.1875,2123493,316,316,0,0,0,0
+1024,600,8.4731,10.7370,11.7360,6.5621,1.4230,0.4768,2457600,1049,332,0,691,0,0

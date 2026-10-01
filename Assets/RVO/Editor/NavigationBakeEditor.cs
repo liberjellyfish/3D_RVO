@@ -44,6 +44,15 @@ namespace Rvo.Editor
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector(); var profile = (SimulationProfile)target;
+            if (profile.Simulation.Dimension == SimulationDimension.Full3D)
+            {
+                EditorGUILayout.HelpBox("Phase 3: baked XYZ volume, 16 / 256 / 1024 agents. None means static-only; ORCA enables dynamic avoidance.", MessageType.Info);
+                if (profile.BakedVolume != null) EditorGUILayout.LabelField(profile.BakedVolume.Summary, EditorStyles.wordWrappedLabel);
+                using (new EditorGUI.DisabledScope(Application.isPlaying))
+                    if (GUILayout.Button("Bake XYZ demo volume"))
+                        try { Phase3DemoBuilder.Bake(profile); } catch (Exception error) { Debug.LogException(error, profile); }
+                return;
+            }
             if (!profile.Navigation.Enabled) return;
             EditorGUILayout.HelpBox("流程：设置地图、半径与三档数量 → Generate + Bake → Play。修改地图或半径后必须重烘焙，运行中不刷新障碍。", MessageType.Info);
             if (profile.BakedMap != null) EditorGUILayout.LabelField(profile.BakedMap.Summary, EditorStyles.wordWrappedLabel);

@@ -10,12 +10,14 @@ namespace Rvo
         public int SourceId;
     }
 
-    /// <summary>Phase 3 contract only: dot(Normal, velocity) >= Offset.</summary>
+    /// <summary>XYZ feasible side: dot(Normal, velocity) >= Offset; unit normal.</summary>
     public struct VelocityPlane3D
     {
         public float3 Normal;
         public float Offset;
         public int SourceId;
+        public bool IsStatic;
+        public float Violation(float3 velocity) => Offset - math.dot(Normal, velocity);
     }
 
     // Geometric constraint building and numerical solving remain separate from scheduling/storage.
