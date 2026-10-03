@@ -1,0 +1,21 @@
+{
+    "unity": "6000.0.63f1",
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "api": "Direct3D11",
+    "cpu": "12th Gen Intel(R) Core(TM) i7-12650H",
+    "mode": "GpuFish",
+    "pipeline": "PC_RPAsset",
+    "gpuTimingNote": "-1 means unavailable; latest_gpu_ms is delayed and keyed by gpu_timing_timestamp. Synthetic render-only, not ORCA throughput.",
+    "renderPath": "Explicit SRP RenderTexture (no presentation)",
+    "agents": 10000,
+    "width": 1920,
+    "height": 1080,
+    "warmup": 120,
+    "frames": 600,
+    "gpuMemoryMB": 7957,
+    "forceLod": -1,
+    "bufferBytes": 2240080,
+    "culling": true,
+    "orbit": false,
+    "editor": false
+}

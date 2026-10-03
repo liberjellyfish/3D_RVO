@@ -1,0 +1,1 @@
+Lit=8745, bounds=Center: (0.02, 0.00, 0.00), Extents: (4.58, 3.37, 0.99), pos=float4(-3.6f, -2.4f, 0f, 0.8114401f), q=float4(0f, 0.7071068f, 0f, 0.7071068f), anim=float4(0.491169f, 0.08608586f, 1.5f, 0.4773177f), supported=True, camera=(x:0.00, y:0.00, width:640.00, height:400.00)

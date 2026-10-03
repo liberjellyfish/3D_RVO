@@ -1,0 +1,45 @@
+#pragma kernel Cull
+#include "FishData.hlsl"
+StructuredBuffer<FishData> _Previous, _Current;
+RWStructuredBuffer<FishData> _Prepared;
+RWStructuredBuffer<uint4> _LodHistory;
+AppendStructuredBuffer<uint> _Visible0, _Visible1, _Visible2, _Visible3;
+float4 _Planes[6];
+float4 _CameraPosition, _CameraForward, _LodPixels;
+float _Alpha, _ProjectionScale, _NearClip, _Hysteresis;
+int _Count, _Orthographic, _CullEnabled, _ForceLod;
+
+[numthreads(128, 1, 1)]
+void Cull(uint3 thread : SV_DispatchThreadID)
+{
+    uint index = thread.x;
+    if (index >= (uint)_Count) return;
+    FishData a = _Previous[index], b = _Current[index], fish = b;
+    fish.positionRadius = lerp(a.positionRadius, b.positionRadius, _Alpha);
+    fish.rotation = normalize(lerp(a.rotation, b.rotation, _Alpha));
+    fish.animation = lerp(a.animation, b.animation, _Alpha);
+    _Prepared[index] = fish;
+    if ((fish.identity.z & 2u) != 0) return;
+    float3 p = fish.positionRadius.xyz;
+    float radius = fish.positionRadius.w;
+    float z = dot(p - _CameraPosition.xyz, _CameraForward.xyz);
+    // 用球体前端深度保守估算尺寸；近裁剪面相交时不会误选过低 LOD。
+    float pixels = _ProjectionScale * radius / (_Orthographic != 0 ? 1 : max(z - radius, _NearClip));
+    uint4 history = _LodHistory[index];
+    uint lod = pixels >= _LodPixels.x ? 0 : pixels >= _LodPixels.y ? 1 : pixels >= _LodPixels.z ? 2 : 3;
+    if (history.x == fish.identity.x && history.y == fish.identity.y && history.w == 1)
+    {
+        lod = min(history.z, 3u);
+        while (lod > 0 && pixels >= _LodPixels[lod - 1] * (1 + _Hysteresis)) lod--;
+        while (lod < 3 && pixels < _LodPixels[lod] * (1 - _Hysteresis)) lod++;
+    }
+    if (_ForceLod >= 0) lod = (uint)_ForceLod;
+    _LodHistory[index] = uint4(fish.identity.xy, lod, 1);
+    if (_CullEnabled != 0)
+        for (int plane = 0; plane < 6; plane++)
+            if (dot(_Planes[plane].xyz, p) + _Planes[plane].w < -radius) return;
+    if (lod == 0) _Visible0.Append(index);
+    else if (lod == 1) _Visible1.Append(index);
+    else if (lod == 2) _Visible2.Append(index);
+    else _Visible3.Append(index);
+}

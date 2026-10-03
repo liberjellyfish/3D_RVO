@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="7" result="Passed" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-03 04:32:52Z" end-time="2026-10-03 04:32:54Z" duration="2.1709354">
+  <test-suite type="TestSuite" id="1018" name="3D_RVO" fullname="3D_RVO" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-10-03 04:32:52Z" end-time="2026-10-03 04:32:54Z" duration="2.170935" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1012" name="Rvo.Tests.PlayMode.dll" fullname="D:/unityhub/tries/3D_RVO/Library/ScriptAssemblies/Rvo.Tests.PlayMode.dll" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-10-03 04:32:52Z" end-time="2026-10-03 04:32:54Z" duration="2.163835" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="24096" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1013" name="Rvo" fullname="Rvo" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-10-03 04:32:52Z" end-time="2026-10-03 04:32:54Z" duration="2.163235" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1014" name="Tests" fullname="Rvo.Tests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-10-03 04:32:52Z" end-time="2026-10-03 04:32:54Z" duration="2.162928" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1001" name="DriverTests" fullname="Rvo.Tests.DriverTests" classname="Rvo.Tests.DriverTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-03 04:32:52Z" end-time="2026-10-03 04:32:52Z" duration="0.550942" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1002" name="PauseStepResetDisableAndPresentationWorkTogether" fullname="Rvo.Tests.DriverTests.PauseStepResetDisableAndPresentationWorkTogether" methodname="PauseStepResetDisableAndPresentationWorkTogether" classname="Rvo.Tests.DriverTests" runstate="Runnable" seed="217022765" result="Passed" start-time="2026-10-03 04:32:52Z" end-time="2026-10-03 04:32:52Z" duration="0.541627" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1003" name="NavigationDriverTests" fullname="Rvo.Tests.NavigationDriverTests" classname="Rvo.Tests.NavigationDriverTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-03 04:32:52Z" end-time="2026-10-03 04:32:53Z" duration="0.411553" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1004" name="BakedNavigationDriverSwitchesTiersRendersAndReleases" fullname="Rvo.Tests.NavigationDriverTests.BakedNavigationDriverSwitchesTiersRendersAndReleases" methodname="BakedNavigationDriverSwitchesTiersRendersAndReleases" classname="Rvo.Tests.NavigationDriverTests" runstate="Runnable" seed="2060591803" result="Passed" start-time="2026-10-03 04:32:52Z" end-time="2026-10-03 04:32:53Z" duration="0.410800" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1005" name="Phase4GpuTests" fullname="Rvo.Tests.Phase4GpuTests" classname="Rvo.Tests.Phase4GpuTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-03 04:32:53Z" end-time="2026-10-03 04:32:54Z" duration="1.019323" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1007" name="IndirectBucketsDrawPixelsAndClearAfterCameraTurn" fullname="Rvo.Tests.Phase4GpuTests.IndirectBucketsDrawPixelsAndClearAfterCameraTurn" methodname="IndirectBucketsDrawPixelsAndClearAfterCameraTurn" classname="Rvo.Tests.Phase4GpuTests" runstate="Runnable" seed="28418145" result="Passed" start-time="2026-10-03 04:32:53Z" end-time="2026-10-03 04:32:53Z" duration="0.064564" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1006" name="LiveBridgeObservesEveryCommitWithoutChangingSimulation" fullname="Rvo.Tests.Phase4GpuTests.LiveBridgeObservesEveryCommitWithoutChangingSimulation" methodname="LiveBridgeObservesEveryCommitWithoutChangingSimulation" classname="Rvo.Tests.Phase4GpuTests" runstate="Runnable" seed="211068970" result="Passed" start-time="2026-10-03 04:32:53Z" end-time="2026-10-03 04:32:53Z" duration="0.349392" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1008" name="ThirtyThousandIndicesAreUniqueAndConservativeAgainstCpuFrustum" fullname="Rvo.Tests.Phase4GpuTests.ThirtyThousandIndicesAreUniqueAndConservativeAgainstCpuFrustum" methodname="ThirtyThousandIndicesAreUniqueAndConservativeAgainstCpuFrustum" classname="Rvo.Tests.Phase4GpuTests" runstate="Runnable" seed="1305500146" result="Passed" start-time="2026-10-03 04:32:53Z" end-time="2026-10-03 04:32:54Z" duration="0.604308" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1009" name="VolumePresentationTests" fullname="Rvo.Tests.VolumePresentationTests" classname="Rvo.Tests.VolumePresentationTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-03 04:32:54Z" end-time="2026-10-03 04:32:54Z" duration="0.180053" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1010" name="ArrivalColorsDistinguishStoppedAgentsAndRestoreOnGoalChange" fullname="Rvo.Tests.VolumePresentationTests.ArrivalColorsDistinguishStoppedAgentsAndRestoreOnGoalChange" methodname="ArrivalColorsDistinguishStoppedAgentsAndRestoreOnGoalChange" classname="Rvo.Tests.VolumePresentationTests" runstate="Runnable" seed="499704496" result="Passed" start-time="2026-10-03 04:32:54Z" end-time="2026-10-03 04:32:54Z" duration="0.031171" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1011" name="CameraContinuouslyFollowsAndFitStopsFollowing" fullname="Rvo.Tests.VolumePresentationTests.CameraContinuouslyFollowsAndFitStopsFollowing" methodname="CameraContinuouslyFollowsAndFitStopsFollowing" classname="Rvo.Tests.VolumePresentationTests" runstate="Runnable" seed="1095061142" result="Passed" start-time="2026-10-03 04:32:54Z" end-time="2026-10-03 04:32:54Z" duration="0.148043" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: C:/Users/20505/AppData/LocalLow/DefaultCompany/3D_RVO\TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

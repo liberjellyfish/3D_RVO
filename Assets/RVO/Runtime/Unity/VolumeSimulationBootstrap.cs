@@ -18,6 +18,11 @@ namespace Rvo
         public QualityMetrics Quality { get; private set; }
         public VolumeRunMetrics Metrics { get; private set; }
         public string LastError { get; private set; }
+        public uint Generation { get; private set; }
+        public long DroppedTicks => clock.DroppedTicks;
+        public float PresentationAlpha => Paused || World == null ? 1 : clock.Fraction(World.Settings.FixedDeltaTime);
+        public event Action<AgentSnapshot> SnapshotCommitted;
+        public event Action PresentationCleared;
         private readonly FixedStepClock clock = new FixedStepClock();
         private bool started;
         private ExecutionBackend? backend;
@@ -26,10 +31,14 @@ namespace Rvo
         private void Start() { started = true; ResetSimulation(); }
         private void OnEnable() { if (started) ResetSimulation(); }
         private void OnDisable() { Release(); }
-        private void Release() { World?.Dispose(); World = null; Navigation = null; Solver = null; Presenter?.Clear(); }
+        private void Release()
+        {
+            try { PresentationCleared?.Invoke(); } catch (Exception e) { Debug.LogException(e, this); }
+            World?.Dispose(); World = null; Navigation = null; Solver = null; Presenter?.Clear();
+        }
         public void ResetSimulation()
         {
-            Release(); clock.Reset(); LastError = null; Quality = default;
+            Release(); clock.Reset(); LastError = null; Quality = default; Generation++;
             try
             {
                 if (Profile == null) throw new InvalidOperationException("Assign a Phase 3 profile.");
@@ -41,7 +50,7 @@ namespace Rvo
                 var modules = Phase3ModuleFactory.Create(settings, Profile.Scenario, Profile.Volume, map, out var navigation, out var solver);
                 World = new SimulationWorld(settings, Profile.Scenario, modules); Navigation = navigation; Solver = solver;
                 Metrics = new VolumeRunMetrics(settings.AgentCount);
-                Presenter?.Initialize(map, World.Snapshot); Present();
+                Presenter?.Initialize(map, World.Snapshot); PublishSnapshot(); Present();
             }
             catch (Exception e) { Fail(e); }
         }
@@ -58,6 +67,8 @@ namespace Rvo
             try
             {
                 World.Step(); Metrics.Observe(World, Navigation, Solver);
+                // 每次提交都通知，防止同帧追赶多个 Tick 时丢失转向历史。
+                PublishSnapshot();
                 if (CollectQuality) Quality = QualityEvaluator.Evaluate(World.Snapshot, World.DebugSnapshot, 0.0001f, SimulationDimension.Full3D);
                 if (present) Present();
             }
@@ -68,6 +79,12 @@ namespace Rvo
             if (World == null || Presenter == null) return;
             Presenter.SelectedAgent = Mathf.Clamp(SelectedAgent, 0, World.Settings.AgentCount - 1);
             Presenter.Present(World.Snapshot, Navigation, Solver, World);
+        }
+        private void PublishSnapshot()
+        {
+            // 表现订阅者失败不改变已提交结果，也不使 World 进入故障状态。
+            try { SnapshotCommitted?.Invoke(new AgentSnapshot(World.Snapshot, World.Tick, Generation, World.Settings.FixedDeltaTime)); }
+            catch (Exception e) { Debug.LogException(e, this); }
         }
         private void Fail(Exception e) { LastError = e.Message; Release(); Paused = true; Debug.LogException(e, this); }
         public void SetAgentTier(int tier) { AgentTier = Mathf.Clamp(tier, 0, 2); ResetSimulation(); }

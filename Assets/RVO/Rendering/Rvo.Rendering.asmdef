@@ -1,0 +1,7 @@
+{
+  "name": "Rvo.Rendering",
+  "rootNamespace": "Rvo.Rendering",
+  "references": ["Rvo.Runtime", "Unity.Mathematics", "Unity.Collections", "Unity.Burst"],
+  "allowUnsafeCode": false,
+  "autoReferenced": true
+}

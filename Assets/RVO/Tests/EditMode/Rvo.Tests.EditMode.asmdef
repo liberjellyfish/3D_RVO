@@ -1,7 +1,7 @@
 {
   "name": "Rvo.Tests.EditMode",
   "rootNamespace": "Rvo.Tests",
-  "references": ["Rvo.Runtime", "Rvo.Editor", "Unity.Mathematics", "Unity.Collections"],
+  "references": ["Rvo.Runtime", "Rvo.Rendering", "Rvo.Editor", "Unity.Mathematics", "Unity.Collections"],
   "includePlatforms": ["Editor"],
   "optionalUnityReferences": ["TestAssemblies"],
   "autoReferenced": false

@@ -1,10 +1,18 @@
-# Unity 6 RVO — Phase 3 收尾，下一轮进入渲染专题
+# Unity 6 RVO — Phase 4 GPU 鱼群基础链路
 
 已实现二维 **None / VO / RVO / ORCA、BruteForce / SpatialHash / KdTree、Reference / JobsBurst**；Phase 3 已实现真正 XYZ 体素导航、球形邻居、3D ORCA、连续扫掠安全检查和恢复。Full3D 支持 None / ORCA 与 BruteForce / SpatialHash。两个阶段共用 World / AgentStorage，不使用 Rigidbody/Collider 位置纠正。
 
 2026-09-29：用户完成后续人工验证，反馈 256 agent 约 1–2 分钟完成，1024 agent 在高频路径长时间滞留后约 20 分钟完成。按用户决定，2D 阶段告一段落；这些是整体完成耗时的观察，不是 A* 耗时或正式性能报告。1024 的拥堵长尾保留为已知限制，不阻塞 3D 开工。
 
-2026-10-01：本轮收尾增加到达标识与共享粗图 ALT 启发式；保留原预算和安全检查。验证与启动延迟对照见 [Phase 3 收尾记录](VERIFICATION_P3_CLOSEOUT.md)。下一轮按 [Phase 4 表现层路线](PHASE4_PRESENTATION.md) 开始简单实例网格，再推进间接绘制、VAT 与海洋。
+2026-10-01：增加到达标识与共享粗图 ALT 启发式，见 [Phase 3 收尾记录](VERIFICATION_P3_CLOSEOUT.md)。2026-10-03：已实现 P4.0–P4.2 的单向快照、稳定三维姿态、GPU 剔除/LOD 和间接程序化鱼绘制；交付独立 render-only / live 场景。使用与证据见 [Phase 4 基础验证](VERIFICATION_P4_FOUNDATION.md)，后续多表示动画、impostor、焦散与海洋方案见 [详细规划](PHASE4_GPU_VISUALIZATION_PLAN.md)。
+
+## Phase 4 操作
+
+1. 打开 `Assets/RVO/Demo/Phase4_RenderOnly.unity`：默认 1 万合成鱼，不运行导航/ORCA。Inspector 的 `FishRenderFixture` 可设 1–30000 个实例及 `Empty / DebugSpheres / GpuFish` 对照，修改后点击 HUD 的 Reset。支持暂停和固定相机环绕；右键旋转、滚轮缩放、中键平移。
+2. `GpuFishRenderer` 提供 Frustum Culling、Force LOD（-1 自动）、LOD 调试色。当前 4 档均为程序化鱼（200/128/72/32 顶点），尚未接入最终 VAT / impostor。相机、Compute 和 Shader 已在场景中引用。
+3. 打开 `Assets/RVO/Demo/Phase4_Live.unity`：默认 1024 个真实 Full3D Agent，沿用 Phase 3 地图、求解器和控制 HUD，通过提交事件驱动鱼群。3 万合成实例结果不能作为真实 ORCA 吞吐结论。
+4. 场景缺失时使用 `Tools > RVO > Create Phase 4 GPU Fish Demos`；菜单仅补建。`Tools > RVO > Build Phase 4 Render Benchmark Player` 构建到 `Builds/Phase4/Phase4.exe`；基准启动参数和指标口径见验证文档。
+5. D3D11 为本轮验证后端。设备需要 Compute / Instancing / Shader Model 4.5；不支持时使用 Phase 3 调试场景。正常渲染无 GPU 回读，验收测试和采样结束截图例外。
 
 ## Phase 3 操作
 

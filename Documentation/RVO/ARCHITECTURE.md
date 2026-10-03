@@ -1,5 +1,7 @@
 # 仿真架构、Phase 3 实现与表现层边界
 
+2026-10-03：新增 `Rvo.Rendering → Rvo.Runtime` 单向程序集依赖。`VolumeSimulationBootstrap` 在每次提交后发布借用的 `AgentSnapshot`，不引用 Rendering；`FishLiveBridge` 在回调返回前完成表现层副本。渲染帧只使用自有 Previous/Current，GPU 插值、剔除与 LOD 不改写仿真。旧 `VolumePresenter` 继续服务调试场景。具体数据布局、执行顺序与验证边界见 [Phase 4 基础验证](VERIFICATION_P4_FOUNDATION.md)。
+
 2026-10-01：Full3D 已实现并进入收尾。`Phase3ModuleFactory` 装配 `VolumeNavigation`、三维邻居、`VolumeAvoidanceSolver` 和 `VolumeEulerIntegrator`，复用同一 World 和 AgentStorage。下文 Phase 1/2 描述及迁移表保留为历史设计；当前验证见 [Phase 3 收尾记录](VERIFICATION_P3_CLOSEOUT.md)，GPU/VAT/海洋接口约定见 [PHASE4_PRESENTATION.md](PHASE4_PRESENTATION.md)。
 
 三维导航由静态细/粗图、预算队列和池化路径组成。`VolumeLandmarks` 只为小型粗图生成 4 份 ALT 距离表，托管表随地图缓存；每个 Jobs 世界拥有一份只读 Native 拷贝，各搜索槽借用，释放槽后再释放共享表。细图回退不使用粗图下界。拥堵代价仍逐请求计算，不写入静态距离表。
@@ -67,6 +69,7 @@ Assets/RVO/
     Diagnostics/   即时质量检查、指标和报告契约
     Unity/         ScriptableObject / MonoBehaviour 适配
   Editor/          安全创建配置和入口对象
+  Rendering/       快照桥接、姿态历史、GPU Buffer/Indirect、鱼 Shader、渲染夹具
   Tests/EditMode/  框架、运动、几何、邻居查询、VO、质量调查
   Tests/PlayMode/  控制、生命周期、实际渲染
   Demo/            可直接运行的场景、6 个配置和材质

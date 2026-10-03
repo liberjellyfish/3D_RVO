@@ -1,6 +1,6 @@
 # 后续步骤与完成条件
 
-2026-10-01 当前状态：Phase 3 核心、性能优化和终点观察收尾见 [本轮验证](VERIFICATION_P3_CLOSEOUT.md)。下一轮进入 [Phase 4 渲染专题](PHASE4_PRESENTATION.md)，先做实例网格与独立性能口径，再接 VAT / 海洋。以下 2026-09-29 段落及各阶段清单保留为历史记录。
+2026-10-03 当前状态：Phase 3 已完成核心与收尾；Phase 4 已交付 P4.0–P4.2 基础链路、两个演示场景及渲染基准入口，见 [基础验证](VERIFICATION_P4_FOUNDATION.md)。下一阶段为 P4.3 近景动画对照，随后研究 impostor 与海洋。以下 2026-09-29 段落及各阶段清单保留为历史记录。
 
 各步骤先做小规模正确性，再扩规模；先有可读的参考实现，再优化。2026-09-29 阶段决定：用户已完成后续人工验证，接受 Phase 2 收尾，下一步进入 Phase 3。256 agent 约 1–2 分钟、1024 agent 约 20 分钟的整体完成观察及拥堵限制见 [PHASE2_TRAFFIC.md](PHASE2_TRAFFIC.md)。本轮仅规划，不改代码或运行验证。
 
@@ -78,7 +78,7 @@ None 和 VO 共用已完成的 BruteForce，保留统一的查询成本和调试
 
 保留限制：1024 高频通道存在很长的拥堵尾部，不保证任意布局最终到达。复杂预约、路径规划 Job 化、共享/分层图、完整墙段几何及 Player 性能矩阵不再无限延长 2D 阶段；适用问题带入 3D，其余作为可选维护待办。用户整体完成观察不等于正式基准。
 
-## Phase 3 — XYZ 体素导航与多智能体避障（已规划，未实施）
+## Phase 3 — XYZ 体素导航与多智能体避障（已实现，以下保留原分批计划）
 
 详细算法选择、模块迁移、接口、容量估算、里程碑与未来验收见 [PHASE3_PLAN.md](PHASE3_PLAN.md)。
 
@@ -88,11 +88,11 @@ None 和 VO 共用已完成的 BruteForce，保留统一的查询成本和调试
 
 轻量调试显示贯穿三批。A* 正确性先行；JPS、KDTree、ALT、搜索 Job 化按瓶颈选用，不同时设为首版阻塞项。首批不宣传动态避碰完成，压力档仍有拥堵时区分“功能完成”和“规模优化完成”。
 
-## Phase 4 — GPU 鱼群与海洋呈现（仅预留）
+## Phase 4 — GPU 鱼群与海洋呈现（P4.0–P4.2 基础实现完成）
 
-AgentStorage 已提交快照 → 表现层自有缓冲 → GraphicsBuffer → GPU Culling / LOD → RenderMeshIndirect → VAT Fish → URP Ocean。
+AgentStorage 已提交快照 → 表现层自有缓冲 → GraphicsBuffer → GPU Culling / LOD → Indirect Rendering → 多表示 Fish → URP Ocean。
 
-在 Phase 3 核心完成后实施；数据所有权、分批接入顺序和用户海洋参考见 [PHASE4_PRESENTATION.md](PHASE4_PRESENTATION.md)。本次不创建分支、不编写渲染接口代码。
+详细设计见 [PHASE4_GPU_VISUALIZATION_PLAN.md](PHASE4_GPU_VISUALIZATION_PLAN.md)。本轮已实现独立 Rendering 程序集、提交快照复制与 parallel transport、四桶 GPU Frustum/LOD/Indirect、程序化低模及 Empty/旧球体/GPU 鱼对照。验收证据与剩余测量项见 [VERIFICATION_P4_FOUNDATION.md](VERIFICATION_P4_FOUNDATION.md)。当前运行四档低模，不把它们标为最终多表示 LOD；P4.3–P4.7 的 VAT/Bone、impostor、Ocean、完整性能矩阵仍未实施。
 
 ## 可选导航扩展 — 容量与地图能力驱动
 

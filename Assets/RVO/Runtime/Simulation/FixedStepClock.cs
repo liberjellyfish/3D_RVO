@@ -7,6 +7,7 @@ namespace Rvo
     {
         private double accumulator;
         public long DroppedTicks { get; private set; }
+        public float Fraction(double step) => (float)Math.Min(1, Math.Max(0, accumulator / step));
         public int Advance(double elapsed, double step, int maxSteps)
         {
             accumulator += elapsed;

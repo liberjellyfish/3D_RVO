@@ -1,0 +1,126 @@
+[
+  {
+    "name": "DebugSpheres-10000",
+    "samples": 600,
+    "frame_ms": {
+      "p50": 0.3809,
+      "p95": 29.5738,
+      "p99": 30.9771
+    },
+    "pack_ms": {
+      "p50": 0.0,
+      "p95": 0.0,
+      "p99": 0.0
+    },
+    "upload_ms": {
+      "p50": 0.0,
+      "p95": 0.0,
+      "p99": 0.0
+    },
+    "submit_ms": {
+      "p50": 0.0,
+      "p95": 0.0,
+      "p99": 0.0
+    },
+    "gpu_valid_samples": 0,
+    "upload_frames": 0,
+    "tick_start": 27,
+    "tick_end": 92,
+    "dropped_start": 85,
+    "dropped_end": 85,
+    "sample_seconds": 2.1368
+  },
+  {
+    "name": "Empty-10000",
+    "samples": 600,
+    "frame_ms": {
+      "p50": 0.3153,
+      "p95": 1.555,
+      "p99": 2.2603
+    },
+    "pack_ms": {
+      "p50": 0.0,
+      "p95": 0.0,
+      "p99": 0.0
+    },
+    "upload_ms": {
+      "p50": 0.0,
+      "p95": 0.0,
+      "p99": 0.0
+    },
+    "submit_ms": {
+      "p50": 0.0,
+      "p95": 0.0,
+      "p99": 0.0
+    },
+    "gpu_valid_samples": 0,
+    "upload_frames": 0,
+    "tick_start": 7,
+    "tick_end": 17,
+    "dropped_start": 81,
+    "dropped_end": 81,
+    "sample_seconds": 0.3327
+  },
+  {
+    "name": "GpuFish-10000",
+    "samples": 600,
+    "frame_ms": {
+      "p50": 0.61181,
+      "p95": 2.20429,
+      "p99": 13.4047
+    },
+    "pack_ms": {
+      "p50": 0.0,
+      "p95": 0.0,
+      "p99": 1.0785
+    },
+    "upload_ms": {
+      "p50": 0.0,
+      "p95": 0.0,
+      "p99": 0.1128
+    },
+    "submit_ms": {
+      "p50": 0.0192,
+      "p95": 0.0256,
+      "p99": 0.0498
+    },
+    "gpu_valid_samples": 0,
+    "upload_frames": 22,
+    "tick_start": 7,
+    "tick_end": 29,
+    "dropped_start": 82,
+    "dropped_end": 82,
+    "sample_seconds": 0.7129
+  },
+  {
+    "name": "GpuFish-30000",
+    "samples": 600,
+    "frame_ms": {
+      "p50": 0.3706,
+      "p95": 5.6423,
+      "p99": 37.8074
+    },
+    "pack_ms": {
+      "p50": 0.0,
+      "p95": 2.8545,
+      "p99": 3.351
+    },
+    "upload_ms": {
+      "p50": 0.0,
+      "p95": 0.179,
+      "p99": 0.2552
+    },
+    "submit_ms": {
+      "p50": 0.0188,
+      "p95": 0.0367,
+      "p99": 0.0606
+    },
+    "gpu_valid_samples": 0,
+    "upload_frames": 35,
+    "tick_start": 8,
+    "tick_end": 44,
+    "dropped_start": 81,
+    "dropped_end": 82,
+    "sample_seconds": 1.2226
+  }
+]

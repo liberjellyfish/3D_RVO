@@ -1,8 +1,10 @@
-# 后续表现层：GPU 鱼群、VAT 与海洋
+# GPU 鱼群与海洋（实施入口与早期记录）
 
-状态：下一轮实施，渲染代码尚未扩展。更新：2026-10-01。Phase 3 收尾证据见 [收尾记录](VERIFICATION_P3_CLOSEOUT.md)。本轮保留轻量调试球体，不提前增加 GPU 缓冲、材质系统或新 World。
+**2026-10-03：P4.0–P4.2 基础实现已交付。** 运行入口、数据布局、测试与 Player 基线见 [基础验证记录](VERIFICATION_P4_FOUNDATION.md)。终态设计以 [Phase 4 GPU 可视化详细规划](PHASE4_GPU_VISUALIZATION_PLAN.md) 为准，涵盖多表示 LOD、VAT/Bone、稳定三维 frame、焦散分析和海洋合成。
 
-下一轮的最小交付：从 `VolumeSimulationBootstrap` 提交后的 `AgentReadView` 接入简单实例球体/低模鱼，保留当前调试 presenter 作对照；支持 Reset、稳定 ID、速度朝向以及当前到达标识。先分别记录仿真、数据上传和绘制开销，再决定间接绘制/剔除方案。现有 `ISimulationPresenter` 原则足够作为边界，待实际 GPU 数据布局确定后再调整接口。
+已新增 `Phase4_RenderOnly.unity` 与 `Phase4_Live.unity`；`AgentSnapshot → FishPoseBuffer → GraphicsBuffer → Compute Culling/LOD → RenderMeshIndirect` 已运行。当前使用 200/128/72/32 顶点程序化鱼验证四档，不表示 VAT、Bone、impostor 或 Ocean 已完成。仿真程序集不引用 Rendering，旧球体调试场景继续保留。
+
+以下第 1–5 节保留早期设计背景，其中拟议接口、顺序和将来时描述不作为当前实施清单；“先 VAT”已经由多表示实测路线替代。后续从 P4.3 开始，外部抓帧、D3D12 和正式重复基准仍待完成，不能由当前短基线推定通过。
 
 ## 1. 最终演示目标与边界
 
@@ -45,9 +47,9 @@ GPU buffer 的创建、上传与显式释放依据 [Unity GraphicsBuffer](https:
 
 ## 4. 用户提供的海洋参考
 
-保留 [Shadertoy MdlXz8](https://www.shadertoy.com/view/MdlXz8) 作为视觉研究入口。本次网页抓取失败，未核实其源码、作者许可、依赖、可移植性或实际性能，因此不把“高性能”写成已测结论，也不承诺原样接入 URP。
+保留 [Shadertoy MdlXz8](https://www.shadertoy.com/view/MdlXz8) 作为视觉研究入口。早期网页抓取失败；用户现已提供完整源码，具体运算、数值稳定性、空间接缝与时间周期分析见 [详细规划第8节](PHASE4_GPU_VISUALIZATION_PLAN.md#8-用户提供焦散源码的具体分析)。作者许可与实际GPU性能仍未核验，不把“高性能”写成已测结论。
 
-实施海洋时再查看原作、许可和完整依赖：确认它是屏幕空间/射线步进还是网格海面方案，哪些效果可提取到 URP，是否需要深度、相机或环境贴图；先做隔离原型再决定移植范围。最终画面以鱼群观察和性能预算为准，不能让海面遮挡全部算法观察入口。
+提供的源码是无纹理输入的二维程序化焦散图案，不是射线步进或网格海面；实施前核验许可，并隔离比较直接计算、低清共享生成与短循环烘焙变体。最终画面以鱼群观察和性能预算为准。
 
 海面几何与仿真边界分开。若要让鱼随浪、海流或流体运动，属于动力学/导航模型扩展，需要重新定义 preferred、可行速度和安全检查，不作为渲染附带功能实现。
 
