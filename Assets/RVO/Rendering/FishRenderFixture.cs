@@ -18,6 +18,7 @@ namespace Rvo.Rendering
         public FishFixtureMode Mode = FishFixtureMode.GpuFish;
         public Vector3 Extent = new Vector3(45, 20, 45);
         public bool Paused, OrbitCamera, ShowHud = true;
+        public bool FixedReplayClock;
         public const float Step = 1f / 30;
         public long Tick { get; private set; }
         public long DroppedTicks => clock.DroppedTicks;
@@ -34,8 +35,10 @@ namespace Rvo.Rendering
         private void ReadArguments()
         {
             string[] args = Environment.GetCommandLineArgs();
-            for (int i = 0; i + 1 < args.Length; i++)
+            for (int i = 0; i < args.Length; i++)
             {
+                if (args[i] == "-rvo-fixed-replay") FixedReplayClock = true;
+                if (i + 1 >= args.Length) continue;
                 if (args[i] == "-rvo-count" && int.TryParse(args[i + 1], out int count)) AgentCount = Mathf.Clamp(count, 1, 30000);
                 if (args[i] == "-rvo-mode" && Enum.TryParse(args[i + 1], true, out FishFixtureMode mode)) Mode = mode;
             }
@@ -71,7 +74,7 @@ namespace Rvo.Rendering
         private void Update()
         {
             if (!positions.IsCreated) return;
-            int steps = Paused ? 0 : clock.Advance(Time.unscaledDeltaTime, Step, 2);
+            int steps = Paused ? 0 : clock.Advance(FixedReplayClock ? 1f / 60 : Time.unscaledDeltaTime, Step, 2);
             for (int i = 0; i < steps; i++) StepOnce(false);
             if (steps > 0 && Mode == FishFixtureMode.DebugSpheres && DebugPresenter != null) DebugPresenter.Present(View, null, null, null);
             if (Renderer != null)

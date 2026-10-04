@@ -14,6 +14,10 @@ namespace Rvo.Rendering
         public Camera ViewCamera;
         public ComputeShader CullingShader;
         public Shader FishShader;
+        public bool DetailedNearMesh;
+        public FishAnimationMode NearAnimation;
+        public FishFarMode FarRepresentation;
+        public bool EnableFarCards;
         public bool AutoRender = true, FrustumCulling = true, ShowLodColors;
         [Range(-1, 3)] public int ForceLod = -1;
         public Vector3 LodPixels = new Vector3(80, 24, 8);
@@ -29,6 +33,7 @@ namespace Rvo.Rendering
         public GraphicsBuffer VisibleIndices(int lod) => visible[lod];
         public GraphicsBuffer Prepared => prepared;
         public Mesh MeshAt(int lod) => meshes[lod];
+        public long AnimationBytes { get; private set; }
         public static bool Supported => SystemInfo.supportsComputeShaders && SystemInfo.supportsInstancing && SystemInfo.graphicsShaderLevel >= 45;
         private GraphicsBuffer previous, current, prepared, history;
         private readonly GraphicsBuffer[] args = new GraphicsBuffer[4], visible = new GraphicsBuffer[4];
@@ -37,6 +42,10 @@ namespace Rvo.Rendering
         private readonly Plane[] planes = new Plane[6];
         private readonly Vector4[] planeVectors = new Vector4[6];
         private Material material;
+        private Texture2D animationTexture;
+        private bool builtDetailed, builtCards;
+        private FishAnimationMode builtAnimation;
+        private FishFarMode builtFar;
         private CommandBuffer commands;
         private int capacity, uploadedRevision = -1, kernel;
         private static readonly int CountOffset = FindInstanceCountOffset();
@@ -53,11 +62,13 @@ namespace Rvo.Rendering
         {
             if (!Supported) { LastError = "GPU fish requires compute shaders and indirect instancing; use the Phase 3 debug presenter on this device."; return false; }
             if (ViewCamera == null || CullingShader == null || FishShader == null) { LastError = "Assign camera, fish shader and culling compute shader."; return false; }
-            if (capacity == Poses.Count && material != null) return true;
+            if (capacity == Poses.Count && material != null && builtDetailed == DetailedNearMesh && builtAnimation == NearAnimation
+                && builtFar == FarRepresentation && builtCards == EnableFarCards) return true;
             ReleaseGpu();
             try
             {
                 capacity = Poses.Count;
+                builtDetailed = DetailedNearMesh; builtAnimation = NearAnimation; builtFar = FarRepresentation; builtCards = EnableFarCards;
                 previous = new GraphicsBuffer(GraphicsBuffer.Target.Structured, capacity, FishGpuData.Stride);
                 current = new GraphicsBuffer(GraphicsBuffer.Target.Structured, capacity, FishGpuData.Stride);
                 prepared = new GraphicsBuffer(GraphicsBuffer.Target.Structured, capacity, FishGpuData.Stride);
@@ -68,7 +79,9 @@ namespace Rvo.Rendering
                 kernel = CullingShader.FindKernel("Cull");
                 for (int lod = 0; lod < 4; lod++)
                 {
-                    meshes[lod] = ProceduralFishMesh.Create(lod);
+                    meshes[lod] = lod == 0 && DetailedNearMesh ? ProceduralFishMesh.CreateDetailed()
+                        : lod >= 2 && EnableFarCards && FarRepresentation != FishFarMode.Mesh
+                        ? FishAnimationBaker.CreateCard(lod == 3 ? FishFarMode.Billboard : FarRepresentation) : ProceduralFishMesh.Create(lod);
                     visible[lod] = new GraphicsBuffer(GraphicsBuffer.Target.Append, capacity, sizeof(uint));
                     args[lod] = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, 1, GraphicsBuffer.IndirectDrawIndexedArgs.size);
                     args[lod].SetData(new[] { new GraphicsBuffer.IndirectDrawIndexedArgs
@@ -78,6 +91,14 @@ namespace Rvo.Rendering
                     }});
                     properties[lod] = new MaterialPropertyBlock();
                     properties[lod].SetBuffer("_Fish", prepared); properties[lod].SetBuffer("_Visible", visible[lod]);
+                    properties[lod].SetFloat("_CardMode", lod >= 2 && EnableFarCards ? (int)(lod == 3 && FarRepresentation != FishFarMode.Mesh ? FishFarMode.Billboard : FarRepresentation) : 0);
+                    properties[lod].SetFloat("_AnimationMode", lod == 0 ? (int)NearAnimation : 0);
+                }
+                animationTexture = FishAnimationBaker.Bake(meshes[0], NearAnimation);
+                if (animationTexture != null)
+                {
+                    properties[0].SetTexture("_AnimationTexture", animationTexture);
+                    AnimationBytes = (long)animationTexture.width * animationTexture.height * (NearAnimation == FishAnimationMode.VertexTexture ? 4 : 8);
                 }
                 LastError = null;
                 return true;
@@ -117,6 +138,7 @@ namespace Rvo.Rendering
                 commands.SetComputeIntParam(CullingShader, "_CullEnabled", FrustumCulling ? 1 : 0);
                 commands.SetComputeIntParam(CullingShader, "_ForceLod", Mathf.Clamp(ForceLod, -1, 3));
                 commands.SetComputeIntParam(CullingShader, "_Orthographic", ViewCamera.orthographic ? 1 : 0);
+                commands.SetComputeIntParam(CullingShader, "_CrossCards", EnableFarCards && (FarRepresentation == FishFarMode.CrossQuads || FarRepresentation == FishFarMode.CrossTriangles) ? 1 : 0);
                 commands.SetComputeFloatParam(CullingShader, "_Alpha", Mathf.Clamp01(Interpolation));
                 commands.SetComputeFloatParam(CullingShader, "_Hysteresis", Mathf.Clamp(LodHysteresis, 0, 0.4f));
                 commands.SetComputeFloatParam(CullingShader, "_ProjectionScale", ViewCamera.pixelHeight * Mathf.Abs(ViewCamera.projectionMatrix.m11));
@@ -170,6 +192,7 @@ namespace Rvo.Rendering
                 DestroyOwned(meshes[lod]); meshes[lod] = null; properties[lod] = null;
             }
             DestroyOwned(material); material = null; capacity = 0; uploadedRevision = -1;
+            DestroyOwned(animationTexture); animationTexture = null; AnimationBytes = 0;
         }
         private static void DestroyOwned(UnityEngine.Object asset)
         { if (asset != null) { if (Application.isPlaying) Destroy(asset); else DestroyImmediate(asset); } }

@@ -1,6 +1,6 @@
 # 后续步骤与完成条件
 
-2026-10-03 当前状态：Phase 3 已完成核心与收尾；Phase 4 已交付 P4.0–P4.2 基础链路、两个演示场景及渲染基准入口，见 [基础验证](VERIFICATION_P4_FOUNDATION.md)。下一阶段为 P4.3 近景动画对照，随后研究 impostor 与海洋。以下 2026-09-29 段落及各阶段清单保留为历史记录。
+2026-10-03 当前状态：Phase 3 已完成核心与收尾；Phase 4 已交付 P4.0–P4.2 基础链路、两个演示场景及渲染基准入口，见 [基础验证](VERIFICATION_P4_FOUNDATION.md)。已继续接入 P4.3 同源动画对照、P4.4 实验卡片、P4.5 焦散/水下合成及 P4.6–4.7 的整合与采样入口，见 [续阶段实施及剩余门槛](PHASE4_CONTINUATION.md)。以下 2026-09-29 段落及各阶段清单保留为历史记录。
 
 各步骤先做小规模正确性，再扩规模；先有可读的参考实现，再优化。2026-09-29 阶段决定：用户已完成后续人工验证，接受 Phase 2 收尾，下一步进入 Phase 3。256 agent 约 1–2 分钟、1024 agent 约 20 分钟的整体完成观察及拥堵限制见 [PHASE2_TRAFFIC.md](PHASE2_TRAFFIC.md)。本轮仅规划，不改代码或运行验证。
 
@@ -88,11 +88,13 @@ None 和 VO 共用已完成的 BruteForce，保留统一的查询成本和调试
 
 轻量调试显示贯穿三批。A* 正确性先行；JPS、KDTree、ALT、搜索 Job 化按瓶颈选用，不同时设为首版阻塞项。首批不宣传动态避碰完成，压力档仍有拥堵时区分“功能完成”和“规模优化完成”。
 
+2026-10-04：在继续性能冻结前，按用户要求优先修正外表材质，加入灰度内箱/球体对照，见 [表面表现修正](PHASE4_SURFACE_CORRECTION.md)。
+
 ## Phase 4 — GPU 鱼群与海洋呈现（P4.0–P4.2 基础实现完成）
 
 AgentStorage 已提交快照 → 表现层自有缓冲 → GraphicsBuffer → GPU Culling / LOD → Indirect Rendering → 多表示 Fish → URP Ocean。
 
-详细设计见 [PHASE4_GPU_VISUALIZATION_PLAN.md](PHASE4_GPU_VISUALIZATION_PLAN.md)。本轮已实现独立 Rendering 程序集、提交快照复制与 parallel transport、四桶 GPU Frustum/LOD/Indirect、程序化低模及 Empty/旧球体/GPU 鱼对照。验收证据与剩余测量项见 [VERIFICATION_P4_FOUNDATION.md](VERIFICATION_P4_FOUNDATION.md)。当前运行四档低模，不把它们标为最终多表示 LOD；P4.3–P4.7 的 VAT/Bone、impostor、Ocean、完整性能矩阵仍未实施。
+详细设计见 [PHASE4_GPU_VISUALIZATION_PLAN.md](PHASE4_GPU_VISUALIZATION_PLAN.md)。本轮已实现独立 Rendering 程序集、提交快照复制与 parallel transport、四桶 GPU Frustum/LOD/Indirect、程序化低模及 Empty/旧球体/GPU 鱼对照。验收证据与剩余测量项见 [VERIFICATION_P4_FOUNDATION.md](VERIFICATION_P4_FOUNDATION.md)。当前运行四档低模，不把它们标为最终多表示 LOD；P4.3–P4.7 已推进同源 VAT/Bone 实验、解析卡片和 Ocean 实现；真实动画资产、正式等画质 GPU 配对矩阵及最终冻结仍待完成，不将基础功能等同于完整退出门槛。
 
 ## 可选导航扩展 — 容量与地图能力驱动
 

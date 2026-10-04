@@ -1,4 +1,4 @@
-# Unity 6 RVO — Phase 4 GPU 鱼群基础链路
+# Unity 6 RVO — GPU 鱼群与水下环境
 
 已实现二维 **None / VO / RVO / ORCA、BruteForce / SpatialHash / KdTree、Reference / JobsBurst**；Phase 3 已实现真正 XYZ 体素导航、球形邻居、3D ORCA、连续扫掠安全检查和恢复。Full3D 支持 None / ORCA 与 BruteForce / SpatialHash。两个阶段共用 World / AgentStorage，不使用 Rigidbody/Collider 位置纠正。
 
@@ -6,8 +6,13 @@
 
 2026-10-01：增加到达标识与共享粗图 ALT 启发式，见 [Phase 3 收尾记录](VERIFICATION_P3_CLOSEOUT.md)。2026-10-03：已实现 P4.0–P4.2 的单向快照、稳定三维姿态、GPU 剔除/LOD 和间接程序化鱼绘制；交付独立 render-only / live 场景。使用与证据见 [Phase 4 基础验证](VERIFICATION_P4_FOUNDATION.md)，后续多表示动画、impostor、焦散与海洋方案见 [详细规划](PHASE4_GPU_VISUALIZATION_PLAN.md)。
 
+P4.3 起的同源动画对照、实验卡片、共享焦散与 Render Graph 水下合成已接入。新增 Ocean / OceanLive 场景，操作和保留门槛见 [续阶段实施](PHASE4_CONTINUATION.md)，实际设备结果见 [续阶段验证](VERIFICATION_P4_CONTINUATION.md)。卡片仍默认关闭，真实美术资产与正式 GPU 性能冻结尚未完成。
+
+2026-10-04：水体改为可见的动态表面材质，并减弱雾。先打开 `Phase4_SurfaceStudy.unity` 查看与参考图接近的灰度内箱/球体，或打开 Ocean 场景查看蓝绿版本；[修正说明及真实截图](PHASE4_SURFACE_CORRECTION.md)。
+
 ## Phase 4 操作
 
+0. 新水下演示打开 `Assets/RVO/Demo/Phase4_Ocean.unity`；真实仿真用 `Phase4_OceanLive.unity`。菜单 `Create Phase 4 Ocean Demos` 补建；右侧 HUD 切动画、焦散与雾。旧基础场景继续作为对照。
 1. 打开 `Assets/RVO/Demo/Phase4_RenderOnly.unity`：默认 1 万合成鱼，不运行导航/ORCA。Inspector 的 `FishRenderFixture` 可设 1–30000 个实例及 `Empty / DebugSpheres / GpuFish` 对照，修改后点击 HUD 的 Reset。支持暂停和固定相机环绕；右键旋转、滚轮缩放、中键平移。
 2. `GpuFishRenderer` 提供 Frustum Culling、Force LOD（-1 自动）、LOD 调试色。当前 4 档均为程序化鱼（200/128/72/32 顶点），尚未接入最终 VAT / impostor。相机、Compute 和 Shader 已在场景中引用。
 3. 打开 `Assets/RVO/Demo/Phase4_Live.unity`：默认 1024 个真实 Full3D Agent，沿用 Phase 3 地图、求解器和控制 HUD，通过提交事件驱动鱼群。3 万合成实例结果不能作为真实 ORCA 吞吐结论。

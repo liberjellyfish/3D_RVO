@@ -10,6 +10,41 @@ namespace Rvo.Tests
     public sealed class Phase4PresentationTests
     {
         [Test]
+        public void DetailedWaveBoundsDerivativesAndTextureLayoutsAreConsistent()
+        {
+            var mesh = ProceduralFishMesh.CreateDetailed();
+            try
+            {
+                Assert.That(mesh.vertexCount,Is.EqualTo(2056));
+                foreach(var vertex in mesh.vertices)
+                    for(int frame=0;frame<64;frame++)
+                    {
+                        float phase=frame*Mathf.PI/32;
+                        var wave=FishAnimationBaker.Wave(vertex.z,phase);
+                        var deformed=vertex+Vector3.right*(wave.x*0.24f);
+                        Assert.That(deformed.magnitude,Is.LessThan(1.7f));
+                        if(vertex.z > -1.299f && vertex.z < 0.999f)
+                        {
+                            float numerical=(FishAnimationBaker.Wave(vertex.z+0.0005f,phase).x-FishAnimationBaker.Wave(vertex.z-0.0005f,phase).x)/0.001f;
+                            Assert.That(wave.y,Is.EqualTo(numerical).Within(0.003f));
+                        }
+                    }
+                foreach(var mode in new[] { FishAnimationMode.VertexTexture,FishAnimationMode.BoneTexture })
+                {
+                    var texture=FishAnimationBaker.Bake(mesh,mode);
+                    try
+                    {
+                        Assert.That(texture.width,Is.EqualTo(mode==FishAnimationMode.VertexTexture ? 2056 : 72));
+                        Assert.That(texture.height,Is.EqualTo(64)); Assert.That(texture.mipmapCount,Is.EqualTo(1));
+                        Assert.That(texture.isReadable,Is.False);
+                    }
+                    finally { UnityEngine.Object.DestroyImmediate(texture); }
+                }
+            }
+            finally { UnityEngine.Object.DestroyImmediate(mesh); }
+        }
+
+        [Test]
         public void BufferLayoutAndFourMeshesMatchContract()
         {
             Assert.That(Marshal.SizeOf<FishGpuData>(), Is.EqualTo(64));

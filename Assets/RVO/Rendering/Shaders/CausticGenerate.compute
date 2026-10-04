@@ -1,0 +1,11 @@
+#pragma kernel Generate
+#include "CausticPattern.hlsl"
+RWTexture2D<float> _Result;
+int _Resolution, _ReferenceForm, _ShortLoop, _RepairSeam;
+float _Seconds;
+[numthreads(8,8,1)]
+void Generate(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= (uint)_Resolution || id.y >= (uint)_Resolution) return;
+    _Result[id.xy] = CausticPattern((id.xy+0.5)/_Resolution,_Seconds,_ReferenceForm!=0,_ShortLoop!=0,_RepairSeam!=0);
+}

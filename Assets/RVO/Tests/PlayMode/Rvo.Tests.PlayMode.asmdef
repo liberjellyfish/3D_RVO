@@ -1,7 +1,7 @@
 {
   "name": "Rvo.Tests.PlayMode",
   "rootNamespace": "Rvo.Tests",
-  "references": ["Rvo.Runtime", "Rvo.Rendering", "Unity.Mathematics", "Unity.Collections"],
+  "references": ["Unity.RenderPipelines.Core.Runtime", "Unity.RenderPipelines.Universal.Runtime", "Rvo.Runtime", "Rvo.Rendering", "Unity.Mathematics", "Unity.Collections"],
   "optionalUnityReferences": ["TestAssemblies"],
   "autoReferenced": false
 }

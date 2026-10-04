@@ -7,7 +7,7 @@ AppendStructuredBuffer<uint> _Visible0, _Visible1, _Visible2, _Visible3;
 float4 _Planes[6];
 float4 _CameraPosition, _CameraForward, _LodPixels;
 float _Alpha, _ProjectionScale, _NearClip, _Hysteresis;
-int _Count, _Orthographic, _CullEnabled, _ForceLod;
+int _Count, _Orthographic, _CullEnabled, _ForceLod, _CrossCards;
 
 [numthreads(128, 1, 1)]
 void Cull(uint3 thread : SV_DispatchThreadID)
@@ -27,14 +27,20 @@ void Cull(uint3 thread : SV_DispatchThreadID)
     float pixels = _ProjectionScale * radius / (_Orthographic != 0 ? 1 : max(z - radius, _NearClip));
     uint4 history = _LodHistory[index];
     uint lod = pixels >= _LodPixels.x ? 0 : pixels >= _LodPixels.y ? 1 : pixels >= _LodPixels.z ? 2 : 3;
-    if (history.x == fish.identity.x && history.y == fish.identity.y && history.w == 1)
+    if (history.x == fish.identity.x && history.y == fish.identity.y && (history.w & 1u) != 0)
     {
         lod = min(history.z, 3u);
         while (lod > 0 && pixels >= _LodPixels[lod - 1] * (1 + _Hysteresis)) lod--;
         while (lod < 3 && pixels < _LodPixels[lod] * (1 - _Hysteresis)) lod++;
     }
     if (_ForceLod >= 0) lod = (uint)_ForceLod;
-    _LodHistory[index] = uint4(fish.identity.xy, lod, 1);
+    // 交叉面沿鱼轴端视会消失；历史高位独立保存回退滞回，不污染尺寸 LOD。
+    float3 view = _Orthographic != 0 ? -_CameraForward.xyz : normalize(_CameraPosition.xyz - p + 1e-8);
+    float axial = abs(dot(view, FishRotate(fish.rotation, float3(0,0,1))));
+    bool sameIdentity = history.x == fish.identity.x && history.y == fish.identity.y;
+    bool fallback = _CrossCards != 0 && axial > (sameIdentity && (history.w & 2u) != 0 ? 0.80 : 0.88);
+    _LodHistory[index] = uint4(fish.identity.xy, lod, fallback ? 3 : 1);
+    if (fallback && lod == 2) lod = 1;
     if (_CullEnabled != 0)
         for (int plane = 0; plane < 6; plane++)
             if (dot(_Planes[plane].xyz, p) + _Planes[plane].w < -radius) return;

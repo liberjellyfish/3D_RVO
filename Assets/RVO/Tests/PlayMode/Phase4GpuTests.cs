@@ -103,10 +103,10 @@ namespace Rvo.Tests
                 {
                     RenderTexture.active = target; texture.ReadPixels(new Rect(0, 0, 640, 400), 0, 0); texture.Apply();
                     int lit = 0; foreach (var pixel in texture.GetPixels32()) if (pixel.r + pixel.g + pixel.b > 80) lit++;
-                    Directory.CreateDirectory("Documentation/RVO/Verification/Phase4");
-                    File.WriteAllBytes("Documentation/RVO/Verification/Phase4/fish.png", texture.EncodeToPNG());
+                    Directory.CreateDirectory("Documentation/RVO/Verification/Phase4Surface/Regression");
+                    File.WriteAllBytes("Documentation/RVO/Verification/Phase4Surface/Regression/fish.png", texture.EncodeToPNG());
                     var gpu = new FishGpuData[25]; renderer.Prepared.GetData(gpu);
-                    File.WriteAllText("Documentation/RVO/Verification/Phase4/gpu-debug.txt", $"Lit={lit}, bounds={renderer.Poses.WorldBounds}, pos={gpu[0].PositionRadius}, q={gpu[0].Rotation}, anim={gpu[0].Animation}, supported={renderer.FishShader.isSupported}, camera={camera.pixelRect}");
+                    File.WriteAllText("Documentation/RVO/Verification/Phase4Surface/Regression/gpu-debug.txt", $"Lit={lit}, bounds={renderer.Poses.WorldBounds}, pos={gpu[0].PositionRadius}, q={gpu[0].Rotation}, anim={gpu[0].Animation}, supported={renderer.FishShader.isSupported}, camera={camera.pixelRect}");
                     Assert.That(lit, Is.GreaterThan(100), "Valid args alone do not prove an actual shader draw.");
                 }
                 finally { RenderTexture.active = old; Object.Destroy(texture); }

@@ -12,6 +12,10 @@ Phase 2 通行协调扩展：`GridNavigation` 持有 `TrafficRecovery`，在路�
 
 Phase 2 通过 `Phase2ModuleFactory` 接入原有 World：`NavigationGrid` 管离线烘焙占据、净空、连通域、静态 BVH 和共享 ALT/跳跃索引；`GridPathfinder` 管可恢复加权 A*；`GridNavigation` 管预算队列、四搜索上下文、池化路径与 Preferred；`GridAvoidanceSolver` 管动态 ORCA、静态硬约束和局部连通分量安全证书。`NeighborSearchFactory` 在 BruteForce / SpatialHash / KdTree 间选择。地图在一次运行中不可变。Unity 的 `GridMapPresenter` 只读取地图和路径。详细约定见 [Phase 2 设计](PHASE2_PLAN.md)。下文 Phase 1 算法约定仍适用于原有无地图模式。
 
+后续表现层扩展：`FishAnimationBaker` 生成 renderer 自有共享动画纹理；`OceanEnvironment` 只持有相机、焦散 RT、背景和局部 Render Graph Pass。颜色/深度/法线共用变形与 clip；不透明物体显式 `ZTest LEqual + ZWrite On`，雾读取深度并输出独立颜色目标。没有新增仿真依赖、全局环境单例或修改共享 URP 资产。详见 [续阶段架构与限制](PHASE4_CONTINUATION.md)。
+
+2026-10-04 材质分工：共享 CausticPattern 只产生图案；OceanSurface 重建表面颜色并接收主光/静态阴影，OceanLighting 对鱼只作照明调制，Fog 独立消光。灰度 SurfaceStudy 在完全无雾条件下验证材质目标；不引入材质注册表或渲染反向依赖。
+
 ## 1. 范围与坐标
 
 Phase 1：无地图、无静态障碍、同一 XZ 平面上的圆盘 Agent。位置、速度、目标点统一使用 `float3`；`position.y = PlaneHeight`、`goal.y = PlaneHeight`、`velocity.y = 0`。2D 几何内核显式取 `(x,z)` 为 `float2`。Phase 3 才启用完整 XYZ 和球形 Agent。

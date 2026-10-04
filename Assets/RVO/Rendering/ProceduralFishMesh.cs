@@ -5,12 +5,17 @@ namespace Rvo.Rendering
 {
     public static class ProceduralFishMesh
     {
-        // 四档都使用同一程序化体型；VAT / impostor 属于后续阶段。
         public static Mesh Create(int lod)
         {
             int[] rings = { 16, 12, 8, 4 }, sides = { 12, 10, 8, 6 };
             if (lod < 0 || lod > 3) throw new System.ArgumentOutOfRangeException(nameof(lod));
-            int r = rings[lod], s = sides[lod];
+            return CreateBody(rings[lod], sides[lod], $"Procedural fish LOD{lod}");
+        }
+
+        public static Mesh CreateDetailed() => CreateBody(64, 32, "Comparison fish (2056 vertices)");
+
+        private static Mesh CreateBody(int r, int s, string name)
+        {
             var vertices = new List<Vector3>(r * s + 8);
             var indices = new List<int>();
             for (int j = 0; j < r; j++)
@@ -39,7 +44,7 @@ namespace Rvo.Rendering
                 new Vector3(0, -0.48f, -1.3f), new Vector3(0, 0.48f, -1.3f));
             AddFin(vertices, indices, new Vector3(0, 0.25f, 0.4f), new Vector3(0, 0.64f, 0.08f),
                 new Vector3(0, 0.5f, -0.45f), new Vector3(0, 0.22f, -0.6f));
-            var mesh = new Mesh { name = $"Procedural fish LOD{lod}" };
+            var mesh = new Mesh { name = name };
             mesh.SetVertices(vertices); mesh.SetTriangles(indices, 0); mesh.RecalculateNormals();
             mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 3.4f);
             return mesh;

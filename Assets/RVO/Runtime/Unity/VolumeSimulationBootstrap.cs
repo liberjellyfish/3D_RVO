@@ -10,6 +10,7 @@ namespace Rvo
         public VolumePresenter Presenter;
         [Range(0, 2)] public int AgentTier;
         public bool Paused, CollectQuality;
+        public bool ShowHud = true;
         public int SelectedAgent;
         [Range(1, 8)] public int MaxStepsPerFrame = 2;
         public SimulationWorld World { get; private set; }
@@ -90,6 +91,7 @@ namespace Rvo
         public void SetAgentTier(int tier) { AgentTier = Mathf.Clamp(tier, 0, 2); ResetSimulation(); }
         private void OnGUI()
         {
+            if (!ShowHud) return;
             bool reset = false; int requestedTier = -1;
             GUILayout.BeginArea(new Rect(12, 12, 360, Mathf.Max(120, Screen.height - 24)), GUI.skin.box);
             GUILayout.Label("Phase 3 · XYZ voxel navigation");
