@@ -8,6 +8,7 @@ namespace Rvo.Tests
 {
     public sealed class VolumePresentationTests
     {
+        private static string EvidenceFolder => "Documentation/RVO/Verification/OceanP0/VolumePresentation/" + SystemInfo.graphicsDeviceType;
         [UnityTest]
         public IEnumerator ArrivalColorsDistinguishStoppedAgentsAndRestoreOnGoalChange()
         {
@@ -45,8 +46,8 @@ namespace Rvo.Tests
                     {
                         camera.targetTexture = target; yield return null; yield return null;
                         RenderTexture.active = target; texture.ReadPixels(new Rect(0, 0, 800, 450), 0, 0); texture.Apply();
-                        Directory.CreateDirectory("Documentation/RVO/Verification/Phase3/Presentation");
-                        File.WriteAllBytes("Documentation/RVO/Verification/Phase3/Presentation/arrived.png", texture.EncodeToPNG());
+                        Directory.CreateDirectory(EvidenceFolder);
+                        File.WriteAllBytes(Path.Combine(EvidenceFolder,"arrived.png"), texture.EncodeToPNG());
                     }
                     finally { camera.targetTexture = null; RenderTexture.active = previous; target.Release(); Object.Destroy(target); Object.Destroy(texture); }
                 }
@@ -90,8 +91,8 @@ namespace Rvo.Tests
                     {
                         camera.targetTexture = target; yield return null; yield return null;
                         RenderTexture.active = target; texture.ReadPixels(new Rect(0, 0, 1400, 900), 0, 0); texture.Apply();
-                        Directory.CreateDirectory("Documentation/RVO/Verification/Phase3/Presentation");
-                        File.WriteAllBytes("Documentation/RVO/Verification/Phase3/Presentation/overview.png", texture.EncodeToPNG());
+                        Directory.CreateDirectory(EvidenceFolder);
+                        File.WriteAllBytes(Path.Combine(EvidenceFolder,"overview.png"), texture.EncodeToPNG());
                     }
                     finally { camera.targetTexture = null; RenderTexture.active = previous; target.Release(); Object.Destroy(target); Object.Destroy(texture); }
                 }

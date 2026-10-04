@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="2" result="Passed" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-04 07:10:20Z" end-time="2026-10-04 07:10:21Z" duration="1.1470158">
+  <test-suite type="TestSuite" id="1026" name="3D_RVO" fullname="3D_RVO" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-10-04 07:10:20Z" end-time="2026-10-04 07:10:21Z" duration="1.147016" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1020" name="Rvo.Tests.PlayMode.dll" fullname="D:/unityhub/tries/3D_RVO/Library/ScriptAssemblies/Rvo.Tests.PlayMode.dll" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-10-04 07:10:20Z" end-time="2026-10-04 07:10:21Z" duration="1.140293" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="24964" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1021" name="Rvo" fullname="Rvo" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-10-04 07:10:20Z" end-time="2026-10-04 07:10:21Z" duration="1.139631" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1022" name="Tests" fullname="Rvo.Tests" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-10-04 07:10:20Z" end-time="2026-10-04 07:10:21Z" duration="1.139206" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1005" name="OceanP0Tests" fullname="Rvo.Tests.OceanP0Tests" classname="Rvo.Tests.OceanP0Tests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-04 07:10:20Z" end-time="2026-10-04 07:10:21Z" duration="1.137880" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1007" name="FishAndReferenceMeshShareSingleRgbFogAcrossDepthPaths" fullname="Rvo.Tests.OceanP0Tests.FishAndReferenceMeshShareSingleRgbFogAcrossDepthPaths" methodname="FishAndReferenceMeshShareSingleRgbFogAcrossDepthPaths" classname="Rvo.Tests.OceanP0Tests" runstate="Runnable" seed="1659253106" result="Passed" start-time="2026-10-04 07:10:20Z" end-time="2026-10-04 07:10:21Z" duration="0.691415" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1006" name="FrozenOceanLiveEvidence" fullname="Rvo.Tests.OceanP0Tests.FrozenOceanLiveEvidence" methodname="FrozenOceanLiveEvidence" classname="Rvo.Tests.OceanP0Tests" runstate="Runnable" seed="397126329" result="Passed" start-time="2026-10-04 07:10:21Z" end-time="2026-10-04 07:10:21Z" duration="0.436426" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: C:/Users/20505/AppData/LocalLow/DefaultCompany/3D_RVO\TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

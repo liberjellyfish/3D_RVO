@@ -11,6 +11,7 @@ namespace Rvo.Tests
 {
     public sealed class Phase4OceanTests
     {
+        private static string EvidenceFolder => "Documentation/RVO/Verification/OceanP0/Regression/" + SystemInfo.graphicsDeviceType;
         private static ComputeShader Compute(string name)
         {
             #if UNITY_EDITOR
@@ -28,7 +29,7 @@ namespace Rvo.Tests
                 RenderTexture.active=target; texture.ReadPixels(new Rect(0,0,target.width,target.height),0,0); texture.Apply();
                 if (evidence != null)
                 {
-                    const string folder="Documentation/RVO/Verification/Phase4Surface/Regression";
+                    string folder=EvidenceFolder;
                     Directory.CreateDirectory(folder);
                     File.WriteAllBytes(Path.Combine(folder,evidence),texture.EncodeToPNG());
                 }
@@ -59,8 +60,8 @@ namespace Rvo.Tests
                 float loopError=0;
                 for(int i=0;i<first.Length;i++) loopError=Mathf.Max(loopError,Mathf.Abs(first[i].r-last[i].r));
                 Assert.That(loopError,Is.LessThan(0.03f),"harmonic 12-second variant only");
-                Directory.CreateDirectory("Documentation/RVO/Verification/Phase4Surface/Regression");
-                File.WriteAllText("Documentation/RVO/Verification/Phase4Surface/Regression/caustic-error.txt",$"referenceMax={error:R}\nloopMax={loopError:R}\n");
+                Directory.CreateDirectory(EvidenceFolder);
+                File.WriteAllText(Path.Combine(EvidenceFolder,"caustic-error.txt"),$"referenceMax={error:R}\nloopMax={loopError:R}\n");
             }
             finally { target.Release(); Object.Destroy(target); }
             yield return null; LogAssert.NoUnexpectedReceived();

@@ -8,11 +8,13 @@
 
 P4.3 起的同源动画对照、实验卡片、共享焦散与 Render Graph 水下合成已接入。新增 Ocean / OceanLive 场景，操作和保留门槛见 [续阶段实施](PHASE4_CONTINUATION.md)，实际设备结果见 [续阶段验证](VERIFICATION_P4_CONTINUATION.md)。卡片仍默认关闭，真实美术资产与正式 GPU 性能冻结尚未完成。
 
-2026-10-04：水体改为可见的动态表面材质，并减弱雾。先打开 `Phase4_SurfaceStudy.unity` 查看与参考图接近的灰度内箱/球体，或打开 Ocean 场景查看蓝绿版本；[修正说明及真实截图](PHASE4_SURFACE_CORRECTION.md)。
+2026-10-04：依据 [OceanLive 检查规划](OCEANLIVE_RENDER_REARCHITECTURE_REVIEW.md) 完成 P0：无几何方向背景、独立水面/光程、共享主光接收面、展示/状态色分离、显式 RG 鱼颜色/深度/法线，修复数值测试确认的漏深度。已有场景已迁移，见 [P0 实施与验证](OCEAN_P0_STRUCTURE.md)。此前强动态表面材质仅保留为 SurfaceStudy 参考实验；[旧修正记录](PHASE4_SURFACE_CORRECTION.md) 是历史画面。
 
 ## Phase 4 操作
 
-0. 新水下演示打开 `Assets/RVO/Demo/Phase4_Ocean.unity`；真实仿真用 `Phase4_OceanLive.unity`。菜单 `Create Phase 4 Ocean Demos` 补建；右侧 HUD 切动画、焦散与雾。旧基础场景继续作为对照。
+2026-10-04 后续：新增 `Assets/RVO/Demo/OceanReef/OceanReefLive.unity`，提供真实 Live 礁石/拱门、离线保守代理、同源四级鱼网格、共享 PBR、跟拍镜头、SMAA 与 TAA 候选、MotionVectors 和端点上传复用。菜单 `Tools/RVO/Open Reef Presentation` 可直接打开。实施、画面证据和未验收范围见 [P1/P2 展示推进](OCEAN_P1_P2_PRESENTATION.md)；本轮未运行数据测试或性能矩阵。
+
+0. 水下演示打开 `Assets/RVO/Demo/Phase4_Ocean.unity`；真实仿真用 `Phase4_OceanLive.unity`。菜单 `Create Phase 4 Ocean Demos` 补建，`Apply Ocean P0 Structure` 重放迁移；HUD 独立切动画、焦散、雾、状态色与光学诊断。旧基础场景继续作为对照。
 1. 打开 `Assets/RVO/Demo/Phase4_RenderOnly.unity`：默认 1 万合成鱼，不运行导航/ORCA。Inspector 的 `FishRenderFixture` 可设 1–30000 个实例及 `Empty / DebugSpheres / GpuFish` 对照，修改后点击 HUD 的 Reset。支持暂停和固定相机环绕；右键旋转、滚轮缩放、中键平移。
 2. `GpuFishRenderer` 提供 Frustum Culling、Force LOD（-1 自动）、LOD 调试色。当前 4 档均为程序化鱼（200/128/72/32 顶点），尚未接入最终 VAT / impostor。相机、Compute 和 Shader 已在场景中引用。
 3. 打开 `Assets/RVO/Demo/Phase4_Live.unity`：默认 1024 个真实 Full3D Agent，沿用 Phase 3 地图、求解器和控制 HUD，通过提交事件驱动鱼群。3 万合成实例结果不能作为真实 ORCA 吞吐结论。

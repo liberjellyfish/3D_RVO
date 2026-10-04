@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEngine;
@@ -26,6 +27,7 @@ namespace Rvo.Rendering
         private readonly FrameTiming[] timing = new FrameTiming[1];
         private int frame;
         private double lastPackTotal;
+        private readonly HashSet<ulong> gpuTimestamps = new HashSet<ulong>();
         private bool quit;
         private string output;
         private bool offscreen, cameraWasEnabled;
@@ -51,6 +53,7 @@ namespace Rvo.Rendering
             if ((Fixture == null && Live == null) || !Application.isPlaying) return;
             ReleaseTarget();
             samples = new Sample[Mathf.Max(1, SampleFrames)]; frame = 0; lastPackTotal = Fish.Poses.TotalPackMilliseconds;
+            gpuTimestamps.Clear();
             if (Live != null) { Live.Source.SnapshotCommitted -= ObserveTick; Live.Source.SnapshotCommitted += ObserveTick; Live.Source.ShowHud = false; }
             QualitySettings.vSyncCount = 0; Application.targetFrameRate = -1; Application.runInBackground = true;
             if (Fixture != null) Fixture.ShowHud = false;
@@ -74,6 +77,10 @@ namespace Rvo.Rendering
             var renderer = Fish;
             int index = frame - WarmupFrames - 1;
             uint available = FrameTimingManager.GetLatestTimings(1, timing);
+            // GetLatestTimings 可多次返回同一 GPU 帧；重复时间戳不能重复计入分位数。
+            bool validGpu = available > 0 && timing[0].gpuFrameTime > 0 && !double.IsNaN(timing[0].gpuFrameTime)
+                && !double.IsInfinity(timing[0].gpuFrameTime) && timing[0].frameStartTimestamp != 0
+                && gpuTimestamps.Add(timing[0].frameStartTimestamp);
             samples[index] = new Sample
             {
                 Frame = Time.frameCount, Tick = Tick, Dropped = Dropped, SimulationCpu = liveCpuMs,
@@ -83,7 +90,7 @@ namespace Rvo.Rendering
                 Submit = DrawFish ? renderer.SubmitMilliseconds : 0,
                 Bytes = DrawFish ? renderer.UploadBytes : 0,
                 // FrameTiming 返回延迟结果，保留它自己的时间戳，不伪装成当前 CPU 帧的 GPU 时间。
-                GpuMs = available > 0 && timing[0].gpuFrameTime > 0 ? timing[0].gpuFrameTime : -1,
+                GpuMs = validGpu ? timing[0].gpuFrameTime : -1,
                 TimingStamp = available > 0 ? timing[0].frameStartTimestamp : 0
             };
             lastPackTotal = renderer.Poses.TotalPackMilliseconds;
@@ -97,6 +104,15 @@ namespace Rvo.Rendering
             foreach (var s in samples)
                 csv.AppendFormat(CultureInfo.InvariantCulture, "{0},{1},{2},{3:F5},{4:F5},{5:F5},{6:F5},{7},{8:F5},{9},{10:F5}\n", s.Frame,s.Tick,s.Dropped,s.FrameMs,s.Pack,s.Upload,s.Submit,s.Bytes,s.GpuMs,s.TimingStamp,s.SimulationCpu);
             File.WriteAllText(Path.Combine(output, "frames.csv"), csv.ToString());
+            var gpu = new List<double>();
+            foreach (var sample in samples) if (sample.GpuMs > 0) gpu.Add(sample.GpuMs);
+            gpu.Sort();
+            File.WriteAllText(Path.Combine(output,"gpu-summary.json"), JsonUtility.ToJson(new GpuSummary
+            {
+                validUniqueSamples=gpu.Count, totalCpuSamples=samples.Length,
+                p50=Percentile(gpu,0.5), p95=Percentile(gpu,0.95), p99=Percentile(gpu,0.99),
+                status=gpu.Count == 0 ? "Unavailable; no GPU performance conclusion" : "Unique delayed GPU frames; coverage must be reviewed"
+            },true));
             var ocean = Fish.ViewCamera.GetComponent<OceanEnvironment>();
             File.WriteAllText(Path.Combine(output, "environment.json"), JsonUtility.ToJson(new Metadata
             {
@@ -109,15 +125,19 @@ namespace Rvo.Rendering
                 ocean = ocean != null && ocean.enabled, fog = ocean != null && ocean.enabled && ocean.Fog,
                 caustic = ocean != null ? ocean.Quality.ToString() : "None", causticHz = ocean != null ? ocean.UpdateHz : 0,
                 causticBytes = ocean != null ? ocean.TextureBytes : 0,
-                surfaceMaterial = ocean != null && ocean.BackgroundMaterial != null ? ocean.BackgroundMaterial.name : "Default",
+                surfaceMaterial = ocean != null && ocean.SurfaceStudyBackground && ocean.BackgroundMaterial != null ? ocean.BackgroundMaterial.name : "Directional horizon (no geometry)",
                 surfaceGain = ocean != null && ocean.BackgroundMaterial != null ? ocean.BackgroundMaterial.GetFloat("_PatternGain") : 1,
                 surfaceScale = ocean != null && ocean.BackgroundMaterial != null ? ocean.BackgroundMaterial.GetFloat("_PatternScale") : 0,
                 fogExtinction = ocean != null ? ocean.Extinction : Vector3.zero,
                 waterColor = ocean != null ? ocean.WaterColor : Color.black,
+                waterSurfaceHeight = ocean != null ? ocean.WaterSurfaceHeight : 0,
+                horizonDistance = ocean != null ? ocean.HorizonDistance : 0,
+                statusColors = Fish.ShowStatusColors, displayHistory = Fish.HasDisplayHistory,
                 nearVertices = DrawFish ? Fish.MeshAt(0).vertexCount : 0,
                 editor = Application.isEditor, pipeline = QualitySettings.renderPipeline != null ? QualitySettings.renderPipeline.name : "Graphics default",
                 renderPath = offscreen ? "Explicit SRP RenderTexture (no presentation)" : "Window (must remain visible)",
-                gpuTimingNote = "-1 means unavailable; delayed GPU samples keyed by gpu_timing_timestamp. Fixed replay is not wall-clock simulation."
+                submissionModel = "Immediate compute + RenderGraph geometry; submit_ms covers preparation, not full graph execution.",
+                gpuTimingNote = "-1 means unavailable or duplicate; percentiles use unique delayed GPU timestamps. Fixed replay is not wall-clock simulation."
             }, true));
             CaptureImage();
             Debug.Log("Phase 4 benchmark saved: " + output);
@@ -125,6 +145,14 @@ namespace Rvo.Rendering
             samples = null;
             ReleaseTarget();
             if (quit) Application.Quit(0);
+        }
+        private static double Percentile(List<double> values,double fraction)
+            => values.Count == 0 ? -1 : values[Math.Max(0,(int)Math.Ceiling(values.Count*fraction)-1)];
+        [Serializable] private sealed class GpuSummary
+        {
+            public int validUniqueSamples,totalCpuSamples;
+            public double p50,p95,p99;
+            public string status;
         }
         private void OnDisable() { samples = null; ReleaseTarget(); if (Live != null) Live.Source.SnapshotCommitted -= ObserveTick; }
         private void ReleaseTarget()
@@ -154,12 +182,14 @@ namespace Rvo.Rendering
         [Serializable] private sealed class Metadata
         {
             public string unity, gpu, api, cpu, mode, pipeline, gpuTimingNote, renderPath, animation, far, caustic, surfaceMaterial;
+            public string submissionModel;
             public float surfaceGain, surfaceScale;
             public Vector3 fogExtinction;
+            public float waterSurfaceHeight, horizonDistance;
             public Color waterColor;
             public int agents, width, height, warmup, frames, gpuMemoryMB, forceLod, causticHz, nearVertices;
             public long bufferBytes, animationBytes, causticBytes;
-            public bool culling, orbit, editor, fixedReplayClock, ocean, fog;
+            public bool culling, orbit, editor, fixedReplayClock, ocean, fog, statusColors, displayHistory;
         }
     }
 }

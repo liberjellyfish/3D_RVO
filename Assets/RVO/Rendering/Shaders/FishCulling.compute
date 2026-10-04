@@ -1,7 +1,9 @@
 #pragma kernel Cull
+#pragma kernel CopyDisplayHistory
 #include "FishData.hlsl"
 StructuredBuffer<FishData> _Previous, _Current;
 RWStructuredBuffer<FishData> _Prepared;
+RWStructuredBuffer<FishData> _PreviousDisplay;
 RWStructuredBuffer<uint4> _LodHistory;
 AppendStructuredBuffer<uint> _Visible0, _Visible1, _Visible2, _Visible3;
 float4 _Planes[6];
@@ -9,12 +11,21 @@ float4 _CameraPosition, _CameraForward, _LodPixels;
 float _Alpha, _ProjectionScale, _NearClip, _Hysteresis;
 int _Count, _Orthographic, _CullEnabled, _ForceLod, _CrossCards;
 
+// 保留前一显示帧的实际插值姿态；仿真 Previous 不能替代 motion history。
+[numthreads(128, 1, 1)]
+void CopyDisplayHistory(uint3 thread : SV_DispatchThreadID)
+{
+    if (thread.x < (uint)_Count) _PreviousDisplay[thread.x] = _Prepared[thread.x];
+}
+
 [numthreads(128, 1, 1)]
 void Cull(uint3 thread : SV_DispatchThreadID)
 {
     uint index = thread.x;
     if (index >= (uint)_Count) return;
     FishData a = _Previous[index], b = _Current[index], fish = b;
+    // CPU 每个 Tick 会折返旧端点相位；GPU 端点复用也必须执行同样折返，避免越过 2π 时反向插值。
+    a.animation.x = fmod(a.animation.x, 6.28318530718);
     fish.positionRadius = lerp(a.positionRadius, b.positionRadius, _Alpha);
     fish.rotation = normalize(lerp(a.rotation, b.rotation, _Alpha));
     fish.animation = lerp(a.animation, b.animation, _Alpha);

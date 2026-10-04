@@ -43,14 +43,16 @@ namespace Rvo.Rendering
             GUILayout.BeginArea(new Rect(Screen.width-300,12,288,300),GUI.skin.box);
             GUILayout.Label("Phase 4 · Ocean / representation lab");
             ocean.Fog = GUILayout.Toggle(ocean.Fog,"Beer fog (one opaque composite)");
-            ocean.Background = GUILayout.Toggle(ocean.Background,"Inward background");
+            ocean.Background = GUILayout.Toggle(ocean.Background,"Directional water background");
             ocean.PauseEnvironment = GUILayout.Toggle(ocean.PauseEnvironment,"Pause environment clock");
             if (GUILayout.Button("Caustic: " + ocean.Quality)) ocean.Quality = (CausticQuality)(((int)ocean.Quality+1)%4);
             if (GUILayout.Button("Near: " + Fish.NearAnimation)) Fish.NearAnimation = (FishAnimationMode)(((int)Fish.NearAnimation+1)%3);
             if (GUILayout.Button("Far experiment: " + Fish.FarRepresentation))
             { Fish.FarRepresentation = (FishFarMode)(((int)Fish.FarRepresentation+1)%4); Fish.EnableFarCards = Fish.FarRepresentation != FishFarMode.Mesh; }
             Fish.ShowLodColors = GUILayout.Toggle(Fish.ShowLodColors,"LOD colors");
-            GUILayout.Label("Fish shadows off · card depth is planar");
+            Fish.ShowStatusColors = GUILayout.Toggle(Fish.ShowStatusColors,"Simulation status colors");
+            if (GUILayout.Button("Optics view: " + ocean.DebugView)) ocean.DebugView = (OceanDebugView)(((int)ocean.DebugView + 1) % 5);
+            GUILayout.Label("Fish cast shadows off · card depth is planar");
             if (ocean.LastError != null) GUILayout.Label(ocean.LastError);
             GUILayout.EndArea();
         }

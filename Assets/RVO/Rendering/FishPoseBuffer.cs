@@ -50,6 +50,7 @@ namespace Rvo.Rendering
         public long Tick { get; private set; } = -1;
         public uint Generation { get; private set; }
         public int Revision { get; private set; }
+        public int IdentityRevision { get; private set; }
         public Bounds WorldBounds { get; private set; }
         public double PackMilliseconds { get; private set; }
         public double TotalPackMilliseconds { get; private set; }
@@ -63,6 +64,10 @@ namespace Rvo.Rendering
             bool reset = Count != snapshot.Agents.Count || Generation != snapshot.Generation;
             if (!reset && snapshot.Tick <= Tick) throw new ArgumentException("Snapshot tick must increase within a generation.");
             if (Count != snapshot.Agents.Count) Allocate(snapshot.Agents.Count);
+            bool identityChanged = reset;
+            if (!identityChanged)
+                for (int i = 0; i < Count; i++)
+                    if (Current[i].Identity.x != unchecked((uint)snapshot.Agents.Ids[i])) { identityChanged = true; break; }
             long start = System.Diagnostics.Stopwatch.GetTimestamp();
             using (PackMarker.Auto())
             {
@@ -75,6 +80,7 @@ namespace Rvo.Rendering
                 var old = Current; Current = scratch; scratch = old;
             }
             Tick = snapshot.Tick; Generation = snapshot.Generation; Revision++;
+            if (identityChanged) IdentityRevision++;
             WorldBounds = new Bounds((bounds[0] + bounds[1]) * 0.5f, math.max(bounds[1] - bounds[0], 0.01f));
             PackMilliseconds = (System.Diagnostics.Stopwatch.GetTimestamp() - start) * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
             TotalPackMilliseconds += PackMilliseconds;

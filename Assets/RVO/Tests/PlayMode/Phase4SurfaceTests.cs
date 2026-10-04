@@ -11,6 +11,7 @@ namespace Rvo.Tests
 {
     public sealed class Phase4SurfaceTests
     {
+        private static string EvidenceFolder => "Documentation/RVO/Verification/OceanP0/SurfaceStudy/" + SystemInfo.graphicsDeviceType;
         [System.Serializable] private sealed class Metrics
         {
             public string api;
@@ -25,7 +26,7 @@ namespace Rvo.Tests
             try
             {
                 RenderTexture.active=target; texture.ReadPixels(new Rect(0,0,target.width,target.height),0,0); texture.Apply();
-                string folder="Documentation/RVO/Verification/Phase4Surface";
+                string folder=EvidenceFolder;
                 Directory.CreateDirectory(folder); File.WriteAllBytes(Path.Combine(folder,name+".png"),texture.EncodeToPNG());
                 return texture.GetPixels();
             }
@@ -78,7 +79,7 @@ namespace Rvo.Tests
                 Capture(camera,target,"shared-ocean-color");
                 camera.transform.LookAt(new Vector3(0,6,3)); Capture(camera,target,"ceiling");
                 camera.transform.LookAt(new Vector3(-6,1,3)); Capture(camera,target,"side-wall");
-                File.WriteAllText("Documentation/RVO/Verification/Phase4Surface/metrics.json",
+                File.WriteAllText(Path.Combine(EvidenceFolder,"metrics.json"),
                     JsonUtility.ToJson(new Metrics { api=SystemInfo.graphicsDeviceType.ToString(),contrast_p90_p10=contrast,
                         time_mae=movement/first.Length,shared_direct_mae=difference/first.Length },true));
             }

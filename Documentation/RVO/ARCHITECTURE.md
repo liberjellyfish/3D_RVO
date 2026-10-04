@@ -179,3 +179,15 @@ Phase 2 静态障碍采用合并格子矩形的保守支撑平面，不等价于
 请求预算、失败重试、等待老化和公平性原则保留；三维退让位置与瓶颈通过关系重新定义。地图只读共享、搜索工作区限制上下文数；体素尺寸和工作区内存必须在创建时检查，不能直接复制二维的 512² 到 512³。
 
 表现层始终在 Commit 后借用状态，若需要跨 Tick/GPU 使用则复制到自有缓冲；核心不持有 GraphicsBuffer 或动画状态。朝向、VAT、显示插值与 GPU 剔除仅改变呈现。World 的调试出口未来通过维度正确的调试提供者取得选中 agent 数据，解除当前对 OrcaSolver2D 的具体类型判断；不在常态每 Tick 保存全体 N×K 平面副本。
+
+## Ocean P0 的渲染边界（2026-10-04）
+
+当前海洋结构和数值证据见 [OCEAN_P0_STRUCTURE.md](OCEAN_P0_STRUCTURE.md)。OceanEnvironment 只装配单基础相机，CausticField 拥有双时刻纹理，WaterOptics 定义世界水域/独立水面与 RGB 光程，UnderwaterLighting 定义共享主光接收面。背景是空深度像素的方向渐变，不是导航 AABB 或实体 Cube。
+
+鱼准备继续在同一 graphics queue 执行 Compute；FishGeometryPass 显式声明 prepared/visible/args 和 depth/normal/color 附件，把全部几何统一放入 Render Graph。随后 OceanCompositePass 读未雾化颜色及本相机 sampled depth，写独立输出并交换 cameraColor。旧高层 indirect 提交漏鱼深度已被独立 CPU 网格射线测试确认并修复。核心 World、导航、ORCA 与快照方向未改变。
+
+前一显示帧历史独立于两个仿真 Tick 的 endpoints；身份槽位/generation/资源/相机变化、漏渲染帧及 camera cut 使历史失效。同帧重复请求不推进历史。P1/P2 后续新增 FishMotionPass 消费 PreviousDisplay，在 URP motion 之后、后处理之前补齐鱼速度；单采样 Mesh 路径可启用 TAA 候选，默认仍为 SMAA。submit_ms 的旧高层提交口径不与本轮准备调度直接等价。
+
+## Ocean P1 / P2 的展示边界
+
+详见 [展示推进记录](OCEAN_P1_P2_PRESENTATION.md)。OceanReefBuilder 负责离线内容与保守代理生成，运行时核心仍只加载不可变导航数据；ReefFishMesh 与 OceanPresentation 不改动仿真状态。独立 OceanPipeline 资产由场景临时选择，退出恢复原资产。GpuFishRenderer 显式绑定 indirect 所需的逐对象主光/SH 常量和外观参数，PBR 鱼/岩石共用三色环境光、主光 BRDF、阴影与光程。连续 Tick 复用 GPU 端点，追赶/换代保留双上传回退。GPU 计时统计排除重复时间戳；本轮只有编译与短时画面复核，没有新增性能验收结果。

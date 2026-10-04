@@ -1,0 +1,365 @@
+{
+    "api": "Direct3D12",
+    "samples": [
+        {
+            "path": "copy-no-ssao",
+            "receiver": "fish",
+            "cameraDistance": 8.0,
+            "cameraX": 0.0,
+            "expectedDistance": 7.7104973793029789,
+            "sampledDistance": 7.7105021476745609,
+            "rgbError": 2.384185791015625e-7,
+            "fogError": 7.450580596923828e-9
+        },
+        {
+            "path": "copy-no-ssao",
+            "receiver": "mesh",
+            "cameraDistance": 8.0,
+            "cameraX": 0.0,
+            "expectedDistance": 7.7104973793029789,
+            "sampledDistance": 7.7105021476745609,
+            "rgbError": 2.384185791015625e-7,
+            "fogError": 2.384185791015625e-7
+        },
+        {
+            "path": "copy-no-ssao",
+            "receiver": "fish",
+            "cameraDistance": 8.0,
+            "cameraX": 0.11999999731779099,
+            "expectedDistance": 7.70993709564209,
+            "sampledDistance": 7.709937572479248,
+            "rgbError": 0.0,
+            "fogError": 7.450580596923828e-9
+        },
+        {
+            "path": "copy-no-ssao",
+            "receiver": "mesh",
+            "cameraDistance": 8.0,
+            "cameraX": 0.11999999731779099,
+            "expectedDistance": 7.70993709564209,
+            "sampledDistance": 7.709937572479248,
+            "rgbError": 0.0,
+            "fogError": 0.0
+        },
+        {
+            "path": "copy-no-ssao",
+            "receiver": "fish",
+            "cameraDistance": 16.0,
+            "cameraX": 0.0,
+            "expectedDistance": 15.710497856140137,
+            "sampledDistance": 15.710501670837403,
+            "rgbError": 1.4901161193847657e-7,
+            "fogError": 7.450580596923828e-9
+        },
+        {
+            "path": "copy-no-ssao",
+            "receiver": "mesh",
+            "cameraDistance": 16.0,
+            "cameraX": 0.0,
+            "expectedDistance": 15.710497856140137,
+            "sampledDistance": 15.710501670837403,
+            "rgbError": 1.4901161193847657e-7,
+            "fogError": 1.4901161193847657e-7
+        },
+        {
+            "path": "copy-no-ssao",
+            "receiver": "fish",
+            "cameraDistance": 16.0,
+            "cameraX": 0.11999999731779099,
+            "expectedDistance": 15.709938049316407,
+            "sampledDistance": 15.709938049316407,
+            "rgbError": 0.0,
+            "fogError": 7.450580596923828e-9
+        },
+        {
+            "path": "copy-no-ssao",
+            "receiver": "mesh",
+            "cameraDistance": 16.0,
+            "cameraX": 0.11999999731779099,
+            "expectedDistance": 15.709938049316407,
+            "sampledDistance": 15.709938049316407,
+            "rgbError": 0.0,
+            "fogError": 0.0
+        },
+        {
+            "path": "copy-no-ssao",
+            "receiver": "fish",
+            "cameraDistance": 32.0,
+            "cameraX": 0.0,
+            "expectedDistance": 31.710498809814454,
+            "sampledDistance": 31.710493087768556,
+            "rgbError": 5.960464477539063e-8,
+            "fogError": 0.0
+        },
+        {
+            "path": "copy-no-ssao",
+            "receiver": "mesh",
+            "cameraDistance": 32.0,
+            "cameraX": 0.0,
+            "expectedDistance": 31.710498809814454,
+            "sampledDistance": 31.710493087768556,
+            "rgbError": 5.960464477539063e-8,
+            "fogError": 5.960464477539063e-8
+        },
+        {
+            "path": "copy-no-ssao",
+            "receiver": "fish",
+            "cameraDistance": 32.0,
+            "cameraX": 0.11999999731779099,
+            "expectedDistance": 31.709936141967775,
+            "sampledDistance": 31.709936141967775,
+            "rgbError": 5.960464477539063e-8,
+            "fogError": 7.450580596923828e-9
+        },
+        {
+            "path": "copy-no-ssao",
+            "receiver": "mesh",
+            "cameraDistance": 32.0,
+            "cameraX": 0.11999999731779099,
+            "expectedDistance": 31.709936141967775,
+            "sampledDistance": 31.709936141967775,
+            "rgbError": 5.960464477539063e-8,
+            "fogError": 5.960464477539063e-8
+        },
+        {
+            "path": "normals-ssao",
+            "receiver": "fish",
+            "cameraDistance": 8.0,
+            "cameraX": 0.0,
+            "expectedDistance": 7.7104973793029789,
+            "sampledDistance": 7.7105021476745609,
+            "rgbError": 2.384185791015625e-7,
+            "fogError": 7.450580596923828e-9
+        },
+        {
+            "path": "normals-ssao",
+            "receiver": "mesh",
+            "cameraDistance": 8.0,
+            "cameraX": 0.0,
+            "expectedDistance": 7.7104973793029789,
+            "sampledDistance": 7.7105021476745609,
+            "rgbError": 2.384185791015625e-7,
+            "fogError": 2.384185791015625e-7
+        },
+        {
+            "path": "normals-ssao",
+            "receiver": "fish",
+            "cameraDistance": 8.0,
+            "cameraX": 0.11999999731779099,
+            "expectedDistance": 7.70993709564209,
+            "sampledDistance": 7.709937572479248,
+            "rgbError": 0.0,
+            "fogError": 7.450580596923828e-9
+        },
+        {
+            "path": "normals-ssao",
+            "receiver": "mesh",
+            "cameraDistance": 8.0,
+            "cameraX": 0.11999999731779099,
+            "expectedDistance": 7.70993709564209,
+            "sampledDistance": 7.709937572479248,
+            "rgbError": 0.0,
+            "fogError": 0.0
+        },
+        {
+            "path": "normals-ssao",
+            "receiver": "fish",
+            "cameraDistance": 16.0,
+            "cameraX": 0.0,
+            "expectedDistance": 15.710497856140137,
+            "sampledDistance": 15.710501670837403,
+            "rgbError": 1.4901161193847657e-7,
+            "fogError": 7.450580596923828e-9
+        },
+        {
+            "path": "normals-ssao",
+            "receiver": "mesh",
+            "cameraDistance": 16.0,
+            "cameraX": 0.0,
+            "expectedDistance": 15.710497856140137,
+            "sampledDistance": 15.710501670837403,
+            "rgbError": 1.4901161193847657e-7,
+            "fogError": 1.4901161193847657e-7
+        },
+        {
+            "path": "normals-ssao",
+            "receiver": "fish",
+            "cameraDistance": 16.0,
+            "cameraX": 0.11999999731779099,
+            "expectedDistance": 15.709938049316407,
+            "sampledDistance": 15.709938049316407,
+            "rgbError": 0.0,
+            "fogError": 7.450580596923828e-9
+        },
+        {
+            "path": "normals-ssao",
+            "receiver": "mesh",
+            "cameraDistance": 16.0,
+            "cameraX": 0.11999999731779099,
+            "expectedDistance": 15.709938049316407,
+            "sampledDistance": 15.709938049316407,
+            "rgbError": 0.0,
+            "fogError": 0.0
+        },
+        {
+            "path": "normals-ssao",
+            "receiver": "fish",
+            "cameraDistance": 32.0,
+            "cameraX": 0.0,
+            "expectedDistance": 31.710498809814454,
+            "sampledDistance": 31.710493087768556,
+            "rgbError": 5.960464477539063e-8,
+            "fogError": 0.0
+        },
+        {
+            "path": "normals-ssao",
+            "receiver": "mesh",
+            "cameraDistance": 32.0,
+            "cameraX": 0.0,
+            "expectedDistance": 31.710498809814454,
+            "sampledDistance": 31.710493087768556,
+            "rgbError": 5.960464477539063e-8,
+            "fogError": 5.960464477539063e-8
+        },
+        {
+            "path": "normals-ssao",
+            "receiver": "fish",
+            "cameraDistance": 32.0,
+            "cameraX": 0.11999999731779099,
+            "expectedDistance": 31.709936141967775,
+            "sampledDistance": 31.709936141967775,
+            "rgbError": 5.960464477539063e-8,
+            "fogError": 7.450580596923828e-9
+        },
+        {
+            "path": "normals-ssao",
+            "receiver": "mesh",
+            "cameraDistance": 32.0,
+            "cameraX": 0.11999999731779099,
+            "expectedDistance": 31.709936141967775,
+            "sampledDistance": 31.709936141967775,
+            "rgbError": 5.960464477539063e-8,
+            "fogError": 2.9802322387695315e-8
+        },
+        {
+            "path": "forced-prepass-no-ssao",
+            "receiver": "fish",
+            "cameraDistance": 8.0,
+            "cameraX": 0.0,
+            "expectedDistance": 7.7104973793029789,
+            "sampledDistance": 7.7105021476745609,
+            "rgbError": 2.384185791015625e-7,
+            "fogError": 7.450580596923828e-9
+        },
+        {
+            "path": "forced-prepass-no-ssao",
+            "receiver": "mesh",
+            "cameraDistance": 8.0,
+            "cameraX": 0.0,
+            "expectedDistance": 7.7104973793029789,
+            "sampledDistance": 7.7105021476745609,
+            "rgbError": 2.384185791015625e-7,
+            "fogError": 2.384185791015625e-7
+        },
+        {
+            "path": "forced-prepass-no-ssao",
+            "receiver": "fish",
+            "cameraDistance": 8.0,
+            "cameraX": 0.11999999731779099,
+            "expectedDistance": 7.70993709564209,
+            "sampledDistance": 7.709937572479248,
+            "rgbError": 0.0,
+            "fogError": 7.450580596923828e-9
+        },
+        {
+            "path": "forced-prepass-no-ssao",
+            "receiver": "mesh",
+            "cameraDistance": 8.0,
+            "cameraX": 0.11999999731779099,
+            "expectedDistance": 7.70993709564209,
+            "sampledDistance": 7.709937572479248,
+            "rgbError": 0.0,
+            "fogError": 0.0
+        },
+        {
+            "path": "forced-prepass-no-ssao",
+            "receiver": "fish",
+            "cameraDistance": 16.0,
+            "cameraX": 0.0,
+            "expectedDistance": 15.710497856140137,
+            "sampledDistance": 15.710501670837403,
+            "rgbError": 1.4901161193847657e-7,
+            "fogError": 7.450580596923828e-9
+        },
+        {
+            "path": "forced-prepass-no-ssao",
+            "receiver": "mesh",
+            "cameraDistance": 16.0,
+            "cameraX": 0.0,
+            "expectedDistance": 15.710497856140137,
+            "sampledDistance": 15.710501670837403,
+            "rgbError": 1.4901161193847657e-7,
+            "fogError": 1.4901161193847657e-7
+        },
+        {
+            "path": "forced-prepass-no-ssao",
+            "receiver": "fish",
+            "cameraDistance": 16.0,
+            "cameraX": 0.11999999731779099,
+            "expectedDistance": 15.709938049316407,
+            "sampledDistance": 15.709938049316407,
+            "rgbError": 0.0,
+            "fogError": 7.450580596923828e-9
+        },
+        {
+            "path": "forced-prepass-no-ssao",
+            "receiver": "mesh",
+            "cameraDistance": 16.0,
+            "cameraX": 0.11999999731779099,
+            "expectedDistance": 15.709938049316407,
+            "sampledDistance": 15.709938049316407,
+            "rgbError": 0.0,
+            "fogError": 0.0
+        },
+        {
+            "path": "forced-prepass-no-ssao",
+            "receiver": "fish",
+            "cameraDistance": 32.0,
+            "cameraX": 0.0,
+            "expectedDistance": 31.710498809814454,
+            "sampledDistance": 31.710493087768556,
+            "rgbError": 5.960464477539063e-8,
+            "fogError": 0.0
+        },
+        {
+            "path": "forced-prepass-no-ssao",
+            "receiver": "mesh",
+            "cameraDistance": 32.0,
+            "cameraX": 0.0,
+            "expectedDistance": 31.710498809814454,
+            "sampledDistance": 31.710493087768556,
+            "rgbError": 5.960464477539063e-8,
+            "fogError": 5.960464477539063e-8
+        },
+        {
+            "path": "forced-prepass-no-ssao",
+            "receiver": "fish",
+            "cameraDistance": 32.0,
+            "cameraX": 0.11999999731779099,
+            "expectedDistance": 31.709936141967775,
+            "sampledDistance": 31.709936141967775,
+            "rgbError": 5.960464477539063e-8,
+            "fogError": 7.450580596923828e-9
+        },
+        {
+            "path": "forced-prepass-no-ssao",
+            "receiver": "mesh",
+            "cameraDistance": 32.0,
+            "cameraX": 0.11999999731779099,
+            "expectedDistance": 31.709936141967775,
+            "sampledDistance": 31.709936141967775,
+            "rgbError": 5.960464477539063e-8,
+            "fogError": 5.960464477539063e-8
+        }
+    ]
+}

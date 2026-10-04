@@ -1,0 +1,15 @@
+{
+  "api": "Direct3D11",
+  "agents": 1024,
+  "tick": 0,
+  "width": 1280,
+  "height": 720,
+  "postProcessing": false,
+  "environmentSeconds": 4,
+  "cameraPosition": "(230.00, 180.00, -330.00)",
+  "extinction": {
+    "r": 0.001,
+    "g": 0.0005,
+    "b": 0.000375
+  }
+}

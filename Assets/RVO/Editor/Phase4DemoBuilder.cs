@@ -5,6 +5,7 @@ using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Rendering.Universal;
 
 namespace Rvo.Editor
 {
@@ -58,15 +59,9 @@ namespace Rvo.Editor
                     var water = camera.gameObject.AddComponent<OceanEnvironment>();
                     water.CausticCompute = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/RVO/Rendering/Shaders/CausticGenerate.compute");
                     water.FogShader = Shader.Find("RVO/Ocean Beer Fog"); water.SurfaceShader = Shader.Find("RVO/Ocean Surface");
-                    if (live) { water.Size = new Vector3(1200,800,1200); water.Extinction *= 0.25f; }
-                    const string surfacePath = "Assets/RVO/Demo/Phase4_OceanSurface.mat";
-                    oceanSurface = AssetDatabase.LoadAssetAtPath<Material>(surfacePath);
-                    if (oceanSurface == null)
-                    {
-                        oceanSurface = new Material(water.SurfaceShader); AssetDatabase.CreateAsset(oceanSurface,surfacePath);
-                        ConfigureSurfaceMaterial(oceanSurface, new Color(0,0.35f,0.5f),0.008f);
-                    }
-                    water.BackgroundMaterial = oceanSurface;
+                    ConfigureOceanP0(water, live);
+                    if (live) water.Size = new Vector3(1200,800,1200);
+                    oceanSurface = ReceiverMaterial();
                     AddOceanLight();
                     camera.gameObject.AddComponent<OceanDemoControls>().Fish = renderer;
                 }
@@ -80,6 +75,7 @@ namespace Rvo.Editor
                     // 静态可视障碍只从不可变烘焙数据生成一次，不回写地图。
                     var map = source.Profile.BakedVolume.Load(source.Profile.Volume, source.Profile.Scenario.Radius);
                     camera.transform.LookAt((Vector3)((map.Min + map.Max) * 0.5f));
+                    if (ocean) ConfigureOceanLiveCamera(camera);
                     var environment = new GameObject("Baked obstacles (visual only)");
                     for (int i = 0; i < map.ObstacleCount; i++)
                     {
@@ -118,16 +114,83 @@ namespace Rvo.Editor
             var sun = new GameObject("Ocean Sun").AddComponent<Light>();
             sun.type = LightType.Directional; sun.intensity = 1.3f; sun.color = Color.white;
             sun.transform.rotation = Quaternion.Euler(48,-28,0); sun.shadows = LightShadows.Soft;
+            RenderSettings.sun = sun;
         }
 
-        [MenuItem("Tools/RVO/Apply Surface Pattern Look to Ocean Demos")]
+        private static Material ReceiverMaterial()
+        {
+            const string path = "Assets/RVO/Demo/Phase4_UnderwaterReceiver.mat";
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material != null) return material;
+            material = new Material(Shader.Find("RVO/Underwater Receiver"));
+            material.SetColor("_BaseColor", new Color(0.25f, 0.32f, 0.3f));
+            AssetDatabase.CreateAsset(material, path); return material;
+        }
+
+        private static void ConfigureOceanP0(OceanEnvironment water, bool live)
+        {
+            water.SurfaceStudyBackground = false; water.BackgroundMaterial = null;
+            water.WaterSurfaceHeight = live ? 200 : 90; water.HorizonDistance = 600;
+            water.Extinction = WaterOptics.Calibrate(new Vector3(0.55f, 0.72f, 0.82f), 100);
+            water.WaterColor = new Color(0.015f, 0.07f, 0.11f);
+            water.CausticStrength = 0.4f; water.Background = true; water.Fog = true;
+        }
+
+        private static void ConfigureOceanLiveCamera(Camera camera)
+        {
+            camera.transform.position = new Vector3(-115, 18, -110);
+            var pivot = new Vector3(-65, 0, 0);
+            camera.transform.LookAt(pivot); camera.farClipPlane = 800;
+            camera.GetComponent<VolumeCameraControls>().Pivot = pivot;
+        }
+
+        [MenuItem("Tools/RVO/Apply Ocean P0 Structure")]
+        public static void ApplyOceanP0()
+        {
+            if (Application.isPlaying) throw new InvalidOperationException("Exit Play before updating scenes.");
+            CreateOcean(); CreateSurfaceStudy();
+            var material = ReceiverMaterial();
+            foreach (string path in new[] { OceanScene, OceanLiveScene, SurfaceStudyScene })
+            {
+                var previous = SceneManager.GetActiveScene();
+                var scene = SceneManager.GetSceneByPath(path);
+                bool opened = !scene.IsValid() || !scene.isLoaded;
+                if (!opened && scene.isDirty) throw new InvalidOperationException("Save the Ocean scene before applying P0.");
+                if (opened) scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
+                SceneManager.SetActiveScene(scene);
+                try
+                {
+                    foreach (var root in scene.GetRootGameObjects())
+                    {
+                        var water = root.GetComponent<OceanEnvironment>();
+                        if (water != null)
+                        {
+                            if (path == SurfaceStudyScene) water.SurfaceStudyBackground = true;
+                            else ConfigureOceanP0(water, path == OceanLiveScene);
+                            var camera = water.GetComponent<Camera>();
+                            camera.allowHDR = true;
+                            camera.GetUniversalAdditionalCameraData().renderPostProcessing = false;
+                            if (path == OceanLiveScene) ConfigureOceanLiveCamera(camera);
+                        }
+                        if (path != SurfaceStudyScene)
+                            foreach (var receiver in root.GetComponentsInChildren<MeshRenderer>()) receiver.sharedMaterial = material;
+                        if (root.TryGetComponent<Light>(out var sun) && sun.type == LightType.Directional) RenderSettings.sun = sun;
+                    }
+                    EditorSceneManager.SaveScene(scene);
+                }
+                finally { if (opened) EditorSceneManager.CloseScene(scene, true); if (previous.IsValid()) SceneManager.SetActiveScene(previous); }
+            }
+            AssetDatabase.SaveAssets();
+        }
+
+        [MenuItem("Tools/RVO/Apply Surface Pattern Look to Surface Study")]
         public static void ApplySurfaceLook()
         {
             if (Application.isPlaying) throw new InvalidOperationException("Exit Play before updating scenes.");
-            CreateOcean();
-            var material = AssetDatabase.LoadAssetAtPath<Material>("Assets/RVO/Demo/Phase4_OceanSurface.mat");
+            CreateSurfaceStudy();
+            var material = AssetDatabase.LoadAssetAtPath<Material>("Assets/RVO/Demo/Phase4_SurfaceStudy.mat");
             ConfigureSurfaceMaterial(material,new Color(0,0.35f,0.5f),0.008f);
-            foreach(string path in new[] { OceanScene,OceanLiveScene })
+            foreach(string path in new[] { SurfaceStudyScene })
             {
                 var previous = SceneManager.GetActiveScene();
                 var scene = SceneManager.GetSceneByPath(path);
@@ -144,8 +207,9 @@ namespace Rvo.Editor
                         var water = root.GetComponent<OceanEnvironment>();
                         if(water == null) continue;
                         water.BackgroundMaterial = material;
+                        water.SurfaceStudyBackground = true;
                         water.WaterColor = new Color(0.015f,0.07f,0.11f);
-                        water.Extinction = new Vector3(0.004f,0.002f,0.0015f) * (path == OceanLiveScene ? 0.25f : 1);
+                        water.Extinction = new Vector3(0.004f,0.002f,0.0015f);
                     }
                     if(!hasSun) AddOceanLight();
                     EditorSceneManager.SaveScene(scene);
@@ -187,6 +251,7 @@ namespace Rvo.Editor
                 water.CausticCompute=AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/RVO/Rendering/Shaders/CausticGenerate.compute");
                 water.FogShader=Shader.Find("RVO/Ocean Beer Fog"); water.SurfaceShader=Shader.Find("RVO/Ocean Surface");
                 water.BackgroundMaterial=material; water.Size=new Vector3(12,8,16); water.Center=new Vector3(0,2,3);
+                water.SurfaceStudyBackground=true;
                 water.Fog=false; water.Quality=CausticQuality.Shared512; water.UpdateHz=30;
                 AddOceanLight();
                 var centers=new[] { new Vector3(-2,-0.75f,3),new Vector3(2,-0.75f,4),new Vector3(1.6f,3,5) };
