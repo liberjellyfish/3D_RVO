@@ -1,9 +1,9 @@
 #ifndef RVO_CAUSTIC_PATTERN
 #define RVO_CAUSTIC_PATTERN
 // 用户提供的 David Hoskins / joltz0r turbulence 参考；保留署名，许可状态见文档。
-float CausticRaw(float2 uv, float seconds, bool referenceForm, bool shortLoop)
+float CausticRawUnwrapped(float2 uv, float seconds, bool referenceForm, bool shortLoop)
 {
-    float2 p = frac(uv) * 6.28318530718 - 250;
+    float2 p = uv * 6.28318530718 - 250;
     float2 i = p;
     float c = 1;
     [unroll] for (int n=0; n<5; n++)
@@ -20,16 +20,21 @@ float CausticRaw(float2 uv, float seconds, bool referenceForm, bool shortLoop)
     c *= c; c *= c; c *= c;
     return min(c, 16);
 }
+float CausticRaw(float2 uv, float seconds, bool referenceForm, bool shortLoop)
+{
+    return CausticRawUnwrapped(frac(uv), seconds, referenceForm, shortLoop);
+}
 float CausticPattern(float2 uv, float seconds, bool referenceForm, bool shortLoop, bool repairSeam)
 {
     uv = frac(uv);
-    // 仅在 tile 边缘混合相对两端。原公式的线性 p 项并非严格周期，不能声称 frac 自然无缝。
-    float2 blend = repairSeam ? smoothstep(0.90,1,uv) : 0;
-    float2 clampedUv = min(uv,0.999999);
-    float a = CausticRaw(clampedUv,seconds,referenceForm,shortLoop);
-    float b = blend.x > 0 ? CausticRaw(float2(0,clampedUv.y),seconds,referenceForm,shortLoop) : a;
-    float c = blend.y > 0 ? CausticRaw(float2(clampedUv.x,0),seconds,referenceForm,shortLoop) : a;
-    float d = blend.x > 0 && blend.y > 0 ? CausticRaw(0,seconds,referenceForm,shortLoop) : a;
+    // Symmetric overlap extends the same formula across both edges. Value and first
+    // derivative agree at the periodic boundary; no one-sided strip flattened to uv=0.
+    float2 other = uv + (uv < 0.5 ? 1 : -1);
+    float2 blend = repairSeam ? 1 - smoothstep(-0.05,0.05,min(uv,1-uv)) : 0;
+    float a = CausticRawUnwrapped(uv,seconds,referenceForm,shortLoop);
+    float b = blend.x > 0 ? CausticRawUnwrapped(float2(other.x,uv.y),seconds,referenceForm,shortLoop) : a;
+    float c = blend.y > 0 ? CausticRawUnwrapped(float2(uv.x,other.y),seconds,referenceForm,shortLoop) : a;
+    float d = blend.x > 0 && blend.y > 0 ? CausticRawUnwrapped(other,seconds,referenceForm,shortLoop) : a;
     return lerp(lerp(a,b,blend.x),lerp(c,d,blend.x),blend.y);
 }
 #endif

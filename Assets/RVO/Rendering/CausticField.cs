@@ -51,9 +51,15 @@ namespace Rvo.Rendering
 
         private static RenderTexture Create(int resolution)
         {
-            var texture = new RenderTexture(resolution, resolution, 0, GraphicsFormat.R16_SFloat)
+            // Make the complete filtering chain explicit for both supported resolutions.
+            var descriptor = new RenderTextureDescriptor(resolution, resolution, GraphicsFormat.R16_SFloat, 0)
             {
-                name = "Shared caustic", enableRandomWrite = true, useMipMap = true, autoGenerateMips = false,
+                enableRandomWrite = true, useMipMap = true, autoGenerateMips = false,
+                mipCount = 1 + (int)Mathf.Log(resolution, 2)
+            };
+            var texture = new RenderTexture(descriptor)
+            {
+                name = "Shared caustic",
                 wrapMode = TextureWrapMode.Repeat, filterMode = FilterMode.Trilinear
             };
             if (!texture.Create()) { DestroyOwned(texture); throw new InvalidOperationException("Cannot create caustic texture."); }

@@ -43,7 +43,10 @@ namespace Rvo.Editor
                 Rock(terrain,"Seabed",new Vector3(0,-49,0),new Vector3(150,62,150),sand,3);
                 Rock(terrain,"Arch left",new Vector3(0,-5,-20),new Vector3(22,42,23),stone,11);
                 Rock(terrain,"Arch right",new Vector3(2,-5,21),new Vector3(25,42,24),stone,17);
-                Rock(terrain,"Arch crown",new Vector3(1,15,0),new Vector3(26,15,62),stone,23);
+                // Shorten the crown in X: its old edge and the western needle left a
+                // sub-voxel free slit. A moving fish could enter it but fail to anchor
+                // a new path. The wider side buffer now contains navigable cell centers.
+                Rock(terrain,"Arch crown",new Vector3(1,15,0),new Vector3(22,15,62),stone,23);
                 Rock(terrain,"Reef west",new Vector3(-29,-10,31),new Vector3(32,33,25),stone,29);
                 Rock(terrain,"Reef east",new Vector3(33,-10,-25),new Vector3(33,31,27),stone,31);
                 Rock(terrain,"Distant crest",new Vector3(41,-5,30),new Vector3(24,45,23),stone,37);
@@ -63,6 +66,8 @@ namespace Rvo.Editor
                 Rock(terrain,"Central stepping reef",new Vector3(1,-17,0),new Vector3(9,10,7),paleStone,83);
                 Rock(terrain,"Western seabed rubble",new Vector3(-10,-20,-1),new Vector3(6,6,9),stone,89);
                 Rock(terrain,"Eastern seabed rubble",new Vector3(10,-20,15),new Vector3(7,7,6),paleStone,97);
+                BuildRouteReefs(terrain,stone,paleStone);
+                if (proxies.Count != 48) throw new InvalidOperationException("Reef route layout must contain 48 proxies.");
                 var profile = BakeProfile();
                 var root = new GameObject("Live reef navigation");
                 var source = root.AddComponent<VolumeSimulationBootstrap>(); source.Profile=profile; source.AgentTier=2; source.ShowHud=false;
@@ -116,6 +121,37 @@ namespace Rvo.Editor
             }
         }
 
+        private static void BuildRouteReefs(Transform terrain, Material stone, Material paleStone)
+        {
+            // 16 blocks: paired elevated windows on each side of the central crown.
+            // Opposite windows have different sill heights, so the two upper branches
+            // rise/fall between x=-16 and x=16. End spawn bands (|x|>=19.2) stay untouched.
+            for (int side=0;side<2;side++) for (int branch=0;branch<2;branch++)
+            {
+                float x=side==0 ? -16 : 16, z=branch==0 ? -21 : 21;
+                float sill=(side==branch) ? 17 : 12;
+                string name=$"Upper route {side}-{branch}";
+                int seed=101+side*37+branch*13;
+                // Root the piers below the seabed; elevated windows must not become
+                // floating rocks. Their full mesh bounds also enter the navigation bake.
+                Rock(terrain,name+" south pier",new Vector3(x,2,z-6),new Vector3(4,56,4),stone,seed);
+                Rock(terrain,name+" north pier",new Vector3(x,2,z+6),new Vector3(4,56,4),stone,seed+2);
+                Rock(terrain,name+" crown",new Vector3(x,29,z),new Vector3(4,4,16),paleStone,seed+4);
+                Rock(terrain,name+" sill",new Vector3(x,sill,z),new Vector3(4,4,11),paleStone,seed+6);
+            }
+            // Eight ribs frame the lower parallel lanes. Short x thicknesses leave
+            // broad chambers between the windows and the original outer needles.
+            float[] columns={-12,-5,5,12};
+            for(int i=0;i<columns.Length;i++) for(int side=0;side<2;side++)
+                Rock(terrain,$"Lower lane rib {i}-{side}",new Vector3(columns[i],-5,side==0 ? -6 : 6),
+                    new Vector3(2,12,2),stone,211+i*11+side*3);
+            // Four staggered fins make an S-shaped alternative below the main arch.
+            // They stop below y=0: fish can change depth instead of entering a long tube.
+            for(int i=0;i<columns.Length;i++)
+                Rock(terrain,$"Staggered lower fin {i}",new Vector3(columns[i],-7,i%2==0 ? -2 : 2),
+                    new Vector3(2,10,4.5f),paleStone,271+i*7);
+        }
+
         private static Material Material(string name, Color color, float smoothness)
         {
             string path=Folder+"/"+name+".mat";
@@ -149,7 +185,14 @@ namespace Rvo.Editor
             profile.Scenario.VolumeSizeVariation=0.3f; profile.Scenario.VolumeSpeedVariation=0.25f;
             var map=VolumeBake.Bake(profile.Volume,profile.Scenario.VolumeClearanceRadius,proxies.ToArray());
             string bytes=Folder+"/ReefNavigation.bytes";
-            File.WriteAllBytes(bytes,VolumeBake.Encode(map)); AssetDatabase.ImportAsset(bytes,ImportAssetOptions.ForceSynchronousImport);
+            // Unity may memory-map a loaded TextAsset on Windows. Release that view
+            // and replace a complete file instead of truncating the live baked asset.
+            var previousBytes=AssetDatabase.LoadAssetAtPath<TextAsset>(bytes);
+            if(previousBytes!=null) Resources.UnloadAsset(previousBytes);
+            string temporary=bytes+".tmp";
+            File.WriteAllBytes(temporary,VolumeBake.Encode(map));
+            if(File.Exists(bytes)) File.Replace(temporary,bytes,null); else File.Move(temporary,bytes);
+            AssetDatabase.ImportAsset(bytes,ImportAssetOptions.ForceSynchronousImport);
             string volumePath=Folder+"/ReefVolume.asset";
             var volume=AssetDatabase.LoadAssetAtPath<BakedNavigationVolume>(volumePath);
             if(volume==null) { volume=ScriptableObject.CreateInstance<BakedNavigationVolume>(); AssetDatabase.CreateAsset(volume,volumePath); }

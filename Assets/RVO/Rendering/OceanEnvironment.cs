@@ -28,6 +28,8 @@ namespace Rvo.Rendering
         [Range(1, 60)] public int UpdateHz = 30;
         [Range(0, 4)] public float CausticStrength = 1.5f;
         public float WorldScale = 0.035f;
+        [Tooltip("World-locked triangular patches; disable to compare the original repeating projection.")]
+        public bool StochasticCaustics = true;
         public bool PauseEnvironment, ShortLoop, FixedClock;
         public double EnvironmentSeconds;
         [Header("Legacy surface study only")]
@@ -101,6 +103,7 @@ namespace Rvo.Rendering
             Shader.SetGlobalColor("_OceanAmbientGround", RenderSettings.ambientGroundColor * RenderSettings.ambientIntensity);
             Shader.SetGlobalFloat("_OceanDirect", Quality == CausticQuality.DirectReference ? 1 : 0);
             Shader.SetGlobalFloat("_OceanShortLoop", ShortLoop ? 1 : 0);
+            Shader.SetGlobalFloat("_OceanStochastic", StochasticCaustics ? 1 : 0);
             Shader.SetGlobalVector("_OceanCaustic", new Vector4(WorldScale, Quality == CausticQuality.Off || LastError != null ? 0 : CausticStrength,
                 field.Blend, (float)(EnvironmentSeconds % (ShortLoop ? 12 : 480 * Math.PI))));
             Shader.SetGlobalTexture("_OceanCausticA", field.Current != null ? field.Current : Texture2D.blackTexture);

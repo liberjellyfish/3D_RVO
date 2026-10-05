@@ -1,0 +1,2 @@
+run,obstacles,agents,ticks,setup_ms,p50_ms,p95_ms,p99_ms,nav_mean_ms,neighbors_mean_ms,avoidance_mean_ms,integration_mean_ms,ready_p50_s,ready_p95_s,ready_max_s,never_ready,first_arrived,current_arrived,max_wait_s,requests,coarse,fallbacks,replans,expanded,limited_agent_ticks,sampled_swept_pairs,static_violations,gc_bytes
+1,48,1024,1800,45.955,3.9308,7.5611,18.4410,0.8989,2.8907,0.9571,0.0275,1.033,2.000,2.600,0,1023,1023,47.133,3572,2429,41,0,152745,0,0,0,0

@@ -10,6 +10,36 @@ namespace Rvo.Tests
     public sealed class ReefVariationTests
     {
         [Test]
+        public void AuthoredUpperBranchesAndLowerDetourRemainNavigable()
+        {
+            var profile=AssetDatabase.LoadAssetAtPath<SimulationProfile>("Assets/RVO/Demo/OceanReef/ReefNavigation.asset");
+            var map=profile.BakedVolume.Load(profile.Volume,profile.Scenario.VolumeClearanceRadius);
+            var search=new VolumePathfinder(profile.Volume.SearchCapacity);
+            var points=new float3[profile.Volume.SearchCapacity+2];
+            // Upper windows, across-crown connections, and lower S-route endpoints.
+            var pairs=new[] {
+                new float3(-25,22,-21),new float3(-16,22,-21),
+                new float3(-16,22,-21),new float3(16,19,-21),
+                new float3(-25,19,21),new float3(-16,19,21),
+                new float3(-16,19,21),new float3(16,22,21),
+                new float3(-14,-7,0),new float3(14,-7,0)
+            };
+            for(int i=0;i<pairs.Length;i+=2)
+            {
+                Assert.That(map.PointClear(pairs[i]),Is.True,$"Entry {i}");
+                Assert.That(map.PointClear(pairs[i+1]),Is.True,$"Exit {i}");
+                search.Begin(map,pairs[i],pairs[i+1],1,true); search.Advance(1000000);
+                Assert.That(search.Status,Is.EqualTo(VolumePathStatus.Ready),$"Branch {i/2}");
+                int count=search.CopyPath(points);
+                for(int j=1;j<count;j++) Assert.That(map.SegmentClear(points[j-1],points[j]),Is.True);
+            }
+            Assert.That(map.SegmentClear(pairs[8],pairs[9]),Is.False,"Lower fins must force a detour or depth change.");
+            var formerSlit=new float3(-12.46719f,7.959142f,-4.373017f);
+            Assert.That(map.PointClear(formerSlit),Is.True);
+            Assert.That(map.Anchor(formerSlit),Is.GreaterThanOrEqualTo(0),"Crown/needle buffer must support replanning.");
+        }
+
+        [Test]
         public void TraitsAndSpawnsAreStableAcrossTiersAndKeepIndividualClearance()
         {
             var profile = AssetDatabase.LoadAssetAtPath<SimulationProfile>("Assets/RVO/Demo/OceanReef/ReefNavigation.asset");
@@ -48,7 +78,7 @@ namespace Rvo.Tests
             Assert.That(map.ClearanceRadius,Is.GreaterThanOrEqualTo(maxRadius+profile.Volume.SafetyMargin));
 
             // Probe real crossing routes, including those whose straight line hits the reef.
-            Assert.That(map.ObstacleCount,Is.EqualTo(20));
+            Assert.That(map.ObstacleCount,Is.EqualTo(48));
             var search = new VolumePathfinder(profile.Volume.SearchCapacity);
             var points = new float3[profile.Volume.SearchCapacity+2];
             int detours = 0;

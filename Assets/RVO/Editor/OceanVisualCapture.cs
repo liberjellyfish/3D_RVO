@@ -60,13 +60,14 @@ namespace Rvo.Editor
                 var fish = UnityEngine.Object.FindFirstObjectByType<GpuFishRenderer>();
                 var source = UnityEngine.Object.FindFirstObjectByType<VolumeSimulationBootstrap>();
                 if (source != null && source.LastError != null) throw new InvalidOperationException(source.LastError);
-                if (fish == null || fish.Poses.Count == 0) return;
+                if (fish == null || (!configuredShot && fish.Poses.Count == 0)) return;
                 if (!configuredShot)
                 {
                     configuredShot=true;
                     if (int.TryParse(Argument("-rvo-shot","-1"),out int shot) && shot >= 0)
                         fish.ViewCamera.GetComponent<OceanPresentation>()?.SelectShot(shot);
                     fish.ViewCamera.GetComponent<OceanPresentation>()?.SetAA(Argument("-rvo-aa","SMAA"));
+                    ConfigureStudy(fish,source);
                     Application.targetFrameRate=30;
                     target=new RenderTexture(1280,720,24,RenderTextureFormat.ARGB32,RenderTextureReadWrite.sRGB);
                     fish.ViewCamera.targetTexture=target; fish.ViewCamera.enabled=false;
@@ -90,6 +91,24 @@ namespace Rvo.Editor
             {
                 Debug.LogException(e); SessionState.EraseString(Key); EditorApplication.Exit(1);
             }
+        }
+
+        private static void ConfigureStudy(GpuFishRenderer fish, VolumeSimulationBootstrap source)
+        {
+            string study=Argument("-rvo-study","");
+            var water=fish.ViewCamera.GetComponent<OceanEnvironment>();
+            water.StochasticCaustics=Argument("-rvo-repeat","0")!="1";
+            if(study.Length==0) return;
+            source.Paused=true; fish.enabled=false;
+            GameObject.Find("Authored reef meshes")?.SetActive(false);
+            var plane=GameObject.CreatePrimitive(PrimitiveType.Plane);
+            plane.name="Caustic inspection plane"; plane.transform.position=new Vector3(0,-10,0);
+            plane.transform.localScale=Vector3.one*18;
+            plane.GetComponent<Renderer>().sharedMaterial=AssetDatabase.LoadAssetAtPath<Material>(OceanReefBuilder.Folder+"/Sand.mat");
+            var camera=fish.ViewCamera;
+            Vector3 eye=study=="top" ? new Vector3(0,65,0) : study=="grazing" ? new Vector3(0,-6,-60) : new Vector3(0,3,-18);
+            camera.transform.position=eye; camera.transform.LookAt(new Vector3(0,-10,0), study=="top" ? Vector3.forward : Vector3.up);
+            water.EnvironmentSeconds=4;
         }
 
         private static void Capture(string path)
