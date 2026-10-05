@@ -48,6 +48,21 @@ namespace Rvo.Editor
                 Rock(terrain,"Reef east",new Vector3(33,-10,-25),new Vector3(33,31,27),stone,31);
                 Rock(terrain,"Distant crest",new Vector3(41,-5,30),new Vector3(24,45,23),stone,37);
                 Rock(terrain,"Foreground shelf",new Vector3(-38,-13,-28),new Vector3(26,22,20),stone,41);
+                // Staggered corridors inside the navigable 64m cube; leave the end spawn bands open.
+                var paleStone = Material("Pale coral limestone",new Color(0.42f,0.40f,0.30f),0.18f);
+                Rock(terrain,"West needle",new Vector3(-17,-4,-9),new Vector3(7,33,8),stone,43);
+                Rock(terrain,"West low ridge",new Vector3(-17,-13,8),new Vector3(9,16,13),paleStone,47);
+                Rock(terrain,"West outer spur",new Vector3(-15,-10,25),new Vector3(8,24,8),stone,53);
+                Rock(terrain,"East needle",new Vector3(18,-1,8),new Vector3(7,39,8),paleStone,59);
+                Rock(terrain,"East low ridge",new Vector3(17,-12,-10),new Vector3(9,18,12),stone,61);
+                Rock(terrain,"East outer spur",new Vector3(16,-8,-27),new Vector3(8,29,7),paleStone,67);
+                // A lower side arch offers an underpass and a route above its crown.
+                Rock(terrain,"Side arch south",new Vector3(15,-12,21),new Vector3(7,20,5),stone,71);
+                Rock(terrain,"Side arch north",new Vector3(15,-12,31),new Vector3(7,20,5),stone,73);
+                Rock(terrain,"Side arch crown",new Vector3(15,-2,26),new Vector3(8,5,15),paleStone,79);
+                Rock(terrain,"Central stepping reef",new Vector3(1,-17,0),new Vector3(9,10,7),paleStone,83);
+                Rock(terrain,"Western seabed rubble",new Vector3(-10,-20,-1),new Vector3(6,6,9),stone,89);
+                Rock(terrain,"Eastern seabed rubble",new Vector3(10,-20,15),new Vector3(7,7,6),paleStone,97);
                 var profile = BakeProfile();
                 var root = new GameObject("Live reef navigation");
                 var source = root.AddComponent<VolumeSimulationBootstrap>(); source.Profile=profile; source.AgentTier=2; source.ShowHud=false;
@@ -65,14 +80,15 @@ namespace Rvo.Editor
                 var water=camera.gameObject.AddComponent<OceanEnvironment>();
                 water.Size=new Vector3(420,240,420); water.WaterSurfaceHeight=65; water.HorizonDistance=250;
                 water.Extinction=WaterOptics.Calibrate(new Vector3(0.55f,0.72f,0.82f),100);
-                water.CausticStrength=0.55f; water.WorldScale=0.055f;
+                // Hoskins/joltz0r turbulence feeds the lit receivers, shared once across all fish/rocks.
+                water.Quality=CausticQuality.Shared512; water.CausticStrength=3.2f; water.WorldScale=0.085f;
                 water.FogShader=Shader.Find("RVO/Ocean Beer Fog");
                 water.CausticCompute=AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/RVO/Rendering/Shaders/CausticGenerate.compute");
                 camera.gameObject.AddComponent<OceanDemoControls>().Fish=fish;
                 var presentation=camera.gameObject.AddComponent<OceanPresentation>(); presentation.enabled=false;
                 presentation.Fish=fish; presentation.Pipeline=Pipeline();
                 var debug=new GameObject("Baked navigation proxies (debug only)"); debug.SetActive(false);
-                var map=profile.BakedVolume.Load(profile.Volume,profile.Scenario.Radius);
+                var map=profile.BakedVolume.Load(profile.Volume,profile.Scenario.VolumeClearanceRadius);
                 var debugMat=Material("Proxy diagnostic",new Color(0.6f,0.22f,0.08f),0);
                 for(int i=0;i<map.ObstacleCount;i++)
                 {
@@ -106,6 +122,7 @@ namespace Rvo.Editor
             var value=AssetDatabase.LoadAssetAtPath<Material>(path);
             if(value==null) { value=new Material(Shader.Find("RVO/Underwater Receiver")); AssetDatabase.CreateAsset(value,path); }
             value.SetColor("_BaseColor",color); value.SetFloat("_ReefDetail",1); value.SetFloat("_Smoothness",smoothness);
+            value.SetFloat("_CausticGain",1.8f);
             EditorUtility.SetDirty(value); return value;
         }
 
@@ -129,7 +146,8 @@ namespace Rvo.Editor
             if(profile==null) { profile=ScriptableObject.CreateInstance<SimulationProfile>(); AssetDatabase.CreateAsset(profile,path); }
             Phase3DemoBuilder.Configure(profile); profile.Volume.Resolution=128; profile.Volume.CellSize=0.5f;
             profile.Scenario.Radius=0.65f; profile.Scenario.MaxSpeed=5; profile.Scenario.Extent=64;
-            var map=VolumeBake.Bake(profile.Volume,profile.Scenario.Radius,proxies.ToArray());
+            profile.Scenario.VolumeSizeVariation=0.3f; profile.Scenario.VolumeSpeedVariation=0.25f;
+            var map=VolumeBake.Bake(profile.Volume,profile.Scenario.VolumeClearanceRadius,proxies.ToArray());
             string bytes=Folder+"/ReefNavigation.bytes";
             File.WriteAllBytes(bytes,VolumeBake.Encode(map)); AssetDatabase.ImportAsset(bytes,ImportAssetOptions.ForceSynchronousImport);
             string volumePath=Folder+"/ReefVolume.asset";

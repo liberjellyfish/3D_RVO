@@ -1,5 +1,7 @@
 # OceanLive P0 画面复核与 P1 / P2 推进
 
+2026-10-05 后续更新：水纹材质、20 个礁石代理、彩色鱼纹及随机体型/速度见 [礁石海洋表现优化](REEF_ENHANCEMENT.md)。本页保留 2026-10-04 的历史记录。
+
 日期：2026-10-04。范围对应 [OceanLive 重构规划](OCEANLIVE_RENDER_REARCHITECTURE_REVIEW.md) 第 10 节，和旧 Phase 1 / Phase 2 算法阶段无关。本轮保留工作区已有 P0 修改；按用户要求没有新增或运行自动化测试、数值回归、规模性能矩阵。
 
 ## 直接打开

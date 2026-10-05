@@ -47,7 +47,7 @@ namespace Rvo
                 if (backend.HasValue) settings.Backend = backend.Value;
                 if (query.HasValue) settings.NeighborSearch = query.Value;
                 if (avoidance.HasValue) settings.Avoidance = avoidance.Value;
-                var map = Profile.BakedVolume.Load(Profile.Volume, Profile.Scenario.Radius);
+                var map = Profile.BakedVolume.Load(Profile.Volume, Profile.Scenario.VolumeClearanceRadius);
                 var modules = Phase3ModuleFactory.Create(settings, Profile.Scenario, Profile.Volume, map, out var navigation, out var solver);
                 World = new SimulationWorld(settings, Profile.Scenario, modules); Navigation = navigation; Solver = solver;
                 Metrics = new VolumeRunMetrics(settings.AgentCount);

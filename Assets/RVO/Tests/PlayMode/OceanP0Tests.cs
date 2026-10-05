@@ -278,6 +278,8 @@ namespace Rvo.Tests
             agent.Parameters[0] = new AgentParameters { Radius = 1, MaxSpeed = 2, ArrivalDistance = 0.1f };
             var root = new GameObject("P0 display history"); var camera = root.AddComponent<Camera>(); camera.enabled = false;
             camera.transform.position = new Vector3(0, 0, -8);
+            var target = new RenderTexture(64,64,24,RenderTextureFormat.ARGB32);
+            target.Create(); camera.targetTexture = target;
             var fish = root.AddComponent<GpuFishRenderer>(); fish.AutoRender = false; fish.ViewCamera = camera;
             fish.CullingShader = culling; fish.FishShader = Shader.Find("RVO/Procedural Fish Indirect");
             var history = new FishGpuData[1];
@@ -285,6 +287,8 @@ namespace Rvo.Tests
             {
                 fish.Capture(new AgentSnapshot(storage.Read, 0, 1, 1f / 30)); fish.Render();
                 Assert.That(fish.HasDisplayHistory, Is.False);
+                // History is valid only after an actual camera render, not just a buffer submission.
+                RenderPipeline.SubmitRenderRequest(camera,new RenderPipeline.StandardRequest { destination=target });
                 yield return null;
                 agent.Positions[0] = new float3(1, 0, 0);
                 fish.Capture(new AgentSnapshot(storage.Read, 1, 1, 1f / 30)); fish.Interpolation = 0.3f; fish.Render();
@@ -292,14 +296,17 @@ namespace Rvo.Tests
                 fish.PreviousDisplay.GetData(history); Assert.That(history[0].PositionRadius.x, Is.EqualTo(0).Within(1e-5));
                 fish.Interpolation = 0.8f; fish.Render();
                 fish.PreviousDisplay.GetData(history); Assert.That(history[0].PositionRadius.x, Is.EqualTo(0).Within(1e-5), "Second request in one frame must retain previous frame.");
+                RenderPipeline.SubmitRenderRequest(camera,new RenderPipeline.StandardRequest { destination=target });
                 yield return null; fish.Render(); fish.PreviousDisplay.GetData(history);
                 Assert.That(history[0].PositionRadius.x, Is.EqualTo(0.8f).Within(1e-5));
+                yield return null; yield return null; fish.Render();
+                Assert.That(fish.HasDisplayHistory, Is.False,"Skipped camera frames invalidate display history.");
                 fish.Capture(new AgentSnapshot(storage.Read, 0, 2, 1f / 30)); fish.Render();
                 Assert.That(fish.HasDisplayHistory, Is.False);
                 fish.InvalidateDisplayHistory(); fish.Render(); Assert.That(fish.HasDisplayHistory, Is.False);
                 fish.enabled = false; Assert.That(fish.BufferBytes, Is.Zero); Assert.That(fish.PreviousDisplay, Is.Null);
             }
-            finally { Object.Destroy(root); }
+            finally { camera.targetTexture=null; target.Release(); Object.Destroy(target); Object.Destroy(root); }
             yield return null; LogAssert.NoUnexpectedReceived();
         }
     }

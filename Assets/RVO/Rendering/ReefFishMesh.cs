@@ -20,8 +20,6 @@ namespace Rvo.Rendering
                     float a = k * 2 * Mathf.PI / s, y = Mathf.Sin(a);
                     v.Add(new Vector3(Mathf.Cos(a) * width, y * width * 1.55f, z));
                     Color color = Color.Lerp(new Color(0.62f, 0.68f, 0.59f), new Color(0.07f, 0.22f, 0.25f), Mathf.SmoothStep(0, 1, (y + 0.3f) / 1.3f));
-                    // 体侧暖色带在所有 LOD 中保留，避免降级时突然变色。
-                    color = Color.Lerp(color, new Color(0.58f, 0.48f, 0.18f), Mathf.Exp(-y * y * 35) * 0.65f);
                     c.Add(color);
                 }
             }
@@ -46,7 +44,15 @@ namespace Rvo.Rendering
                 if (lod < 2) Eye(v,c,t,sign,lod == 0 ? 10 : 6);
             }
             var mesh = new Mesh { name = "Reef fusilier LOD" + lod };
-            mesh.SetVertices(v); mesh.SetColors(c); mesh.SetTriangles(t,0); mesh.RecalculateNormals();
+            // UV0.x is a continuous flank stripe mask; fins/eyes remain unpainted.
+            // Its hue is chosen per stable fish ID in the shader, with no per-fish materials.
+            var markings = new List<Vector2>(v.Count);
+            for (int j=0;j<v.Count;j++)
+            {
+                float side = Mathf.Sin((j % s) * 2 * Mathf.PI / s);
+                markings.Add(new Vector2(j < r*s ? Mathf.Exp(-side*side*18) : 0, 0));
+            }
+            mesh.SetVertices(v); mesh.SetUVs(0,markings); mesh.SetColors(c); mesh.SetTriangles(t,0); mesh.RecalculateNormals();
             mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 3.4f);
             return mesh;
         }

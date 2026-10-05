@@ -23,7 +23,14 @@ Shader "RVO/Procedural Fish Indirect"
         StructuredBuffer<FishData> _PreviousDisplay;
         StructuredBuffer<uint> _Visible;
         float _DebugLod, _DebugAppearance, _ReefFish, _HasDisplayHistory;
-        struct Attributes { float3 positionOS : POSITION; float3 normalOS : NORMAL; float4 color : COLOR; uint instanceID : SV_InstanceID; uint vertexID : SV_VertexID; };
+        struct Attributes { float3 positionOS : POSITION; float3 normalOS : NORMAL; float4 color : COLOR; float2 markings : TEXCOORD0; uint instanceID : SV_InstanceID; uint vertexID : SV_VertexID; };
+        float3 StripeColor(uint seed)
+        {
+            uint palette = (seed >> 8) % 6u;
+            return palette == 0u ? float3(1.0,0.62,0.045) : palette == 1u ? float3(0.025,0.85,0.58)
+                : palette == 2u ? float3(0.08,0.36,1.0) : palette == 3u ? float3(1.0,0.18,0.10)
+                : palette == 4u ? float3(0.68,0.16,0.95) : float3(0.6,0.9,0.055);
+        }
         struct Varyings {
             float4 positionCS : SV_POSITION; float3 normalWS : TEXCOORD0; float3 color : TEXCOORD1; float longitudinal : TEXCOORD2;
             float3 positionWS : TEXCOORD3; float3 localPoint : TEXCOORD4; nointerpolation float3 localCamera : TEXCOORD5;
@@ -57,7 +64,12 @@ Shader "RVO/Procedural Fish Indirect"
             output.normalWS = normalize(FishRotate(fish.rotation, normal));
             float hue = (fish.identity.w & 255u) / 255.0;
             output.color = lerp(float3(0.26, 0.42, 0.46), float3(0.42, 0.53, 0.5), hue);
-            if (_ReefFish > 0.5) output.color = input.color.rgb * lerp(0.88,1.12,hue);
+            if (_ReefFish > 0.5)
+            {
+                float3 stripe = StripeColor(fish.identity.w);
+                float3 body = input.color.rgb * lerp(float3(1,1,1), 0.65 + stripe * 0.6, 0.22);
+                output.color = lerp(body, stripe, input.markings.x * 0.9) * lerp(0.9,1.1,hue);
+            }
             if (_DebugAppearance > 0.5)
             {
                 output.color = lerp(float3(0.12, 0.42, 0.66), float3(0.85, 0.49, 0.16), hue);
@@ -81,7 +93,7 @@ Shader "RVO/Procedural Fish Indirect"
             // 鳃盖窄带随屏幕导数展宽，缩小时自动淡出。
             float gill = 1 - smoothstep(0.015,0.035 + fwidth(input.localPoint.z),abs(input.localPoint.z-0.49));
             float3 albedo = input.color * bands * (1 - _ReefFish * gill * 0.3);
-            return half4(_ReefFish > 0.5 ? ShadeUnderwaterPbr(albedo,input.positionWS,n,input.smoothness,1)
+            return half4(_ReefFish > 0.5 ? ShadeUnderwaterPbr(albedo,input.positionWS,n,input.smoothness,1,1)
                 : ShadeUnderwaterReceiver(albedo, input.positionWS, n), 1);
         }
         half4 DepthFrag(Varyings input) : SV_Target { SurfaceNormal(input); return 0; }

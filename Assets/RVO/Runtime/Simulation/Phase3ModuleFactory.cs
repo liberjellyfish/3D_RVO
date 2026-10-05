@@ -9,12 +9,12 @@ namespace Rvo
         public static SimulationModules Create(in SimulationSettings settings, in ScenarioSettings scenario,
             in VolumeSettings volumeSettings, NavigationVolume map, out VolumeNavigation navigation, out VolumeAvoidanceSolver solver)
         {
-            settings.Validate(); scenario.Validate(settings.AgentCount); volumeSettings.Validate(scenario.Radius);
+            settings.Validate(); scenario.Validate(settings.AgentCount); volumeSettings.Validate(scenario.VolumeClearanceRadius);
             if (settings.Dimension != SimulationDimension.Full3D || (settings.Avoidance != AvoidanceAlgorithm.None && settings.Avoidance != AvoidanceAlgorithm.ORCA))
                 throw new NotSupportedException("Phase 3 requires Full3D + None (static-only) or ORCA.");
             if (settings.NeighborSearch == NeighborSearchAlgorithm.KdTree) throw new NotSupportedException("XYZ KDTree is not implemented; use BruteForce or SpatialHash.");
             if (map == null || map.Resolution != volumeSettings.Resolution || map.CellSize != volumeSettings.CellSize ||
-                math.abs(map.ClearanceRadius - scenario.Radius - volumeSettings.SafetyMargin) > 1e-6f) throw new ArgumentException("Baked volume does not match the profile.");
+                math.abs(map.ClearanceRadius - scenario.VolumeClearanceRadius - volumeSettings.SafetyMargin) > 1e-6f) throw new ArgumentException("Baked volume does not match the profile. Re-bake after changing size variation.");
             navigation = new VolumeNavigation(volumeSettings, map, settings.AgentCount, settings.Backend); solver = null;
             try
             {
@@ -37,22 +37,29 @@ namespace Rvo
             for (int i = 0; i < settings.AgentCount; i++)
             {
                 a.Ids[i] = i; a.Velocities[i] = float3.zero;
-                a.Parameters[i] = new AgentParameters { Radius = scenario.Radius, MaxSpeed = scenario.MaxSpeed, ArrivalDistance = scenario.ArrivalDistance };
+                // Separate stable stream: appearance/count tiers never consume the spawn RNG.
+                var traits = Unity.Mathematics.Random.CreateFromIndex(math.hash(new uint2(scenario.Seed, (uint)i)) % uint.MaxValue);
+                float radius = scenario.Radius * traits.NextFloat(1 - scenario.VolumeSizeVariation, 1 + scenario.VolumeSizeVariation);
+                float speed = scenario.MaxSpeed * traits.NextFloat(1 - scenario.VolumeSpeedVariation, 1 + scenario.VolumeSpeedVariation);
+                a.Parameters[i] = new AgentParameters { Radius = radius, MaxSpeed = speed, ArrivalDistance = scenario.ArrivalDistance };
                 // Alternating directions across the fixed apertures; prefix stable across all three count tiers.
-                a.Positions[i] = Pick(a.Positions, i, i % 2 == 0, scenario.Radius, ref random);
-                a.Goals[i] = Pick(a.Goals, i, i % 2 != 0, scenario.Radius, ref random);
+                a.Positions[i] = Pick(a.Positions, a.Parameters, i, i % 2 == 0, radius, ref random);
+                a.Goals[i] = Pick(a.Goals, a.Parameters, i, i % 2 != 0, radius, ref random);
             }
         }
-        private float3 Pick(NativeArray<float3> points, int count, bool left, float radius, ref Unity.Mathematics.Random random)
+        private float3 Pick(NativeArray<float3> points, NativeArray<AgentParameters> parameters, int count, bool left, float radius, ref Unity.Mathematics.Random random)
         {
-            float spacing = 2 * radius + 0.3f;
             for (int attempt = 0; attempt < 16384; attempt++)
             {
                 int cell = random.NextInt(map.Count); if (map.Component(cell) != map.LargestComponent) continue;
                 float3 p = map.Center(cell); float normalizedX = (p.x - map.Min.x) / (map.Max.x - map.Min.x);
                 if (left ? normalizedX > 0.2f : normalizedX < 0.8f) continue;
                 bool free = true;
-                for (int j = 0; j < count; j++) if (math.distancesq(p, points[j]) < spacing * spacing) { free = false; break; }
+                for (int j = 0; j < count; j++)
+                {
+                    float spacing = radius + parameters[j].Radius + 0.3f;
+                    if (math.distancesq(p, points[j]) < spacing * spacing) { free = false; break; }
+                }
                 if (free) return p;
             }
             throw new InvalidOperationException("Cannot place separated starts/goals in the largest volume component.");

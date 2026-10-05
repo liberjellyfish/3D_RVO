@@ -1,0 +1,3 @@
+2026-10-05T06:50:48.0762314Z frame=109 tick=111 agents=1024 camera=(-57.00, 24.00, -53.00) api=Direct3D11
+2026-10-05T06:50:52.0804581Z frame=229 tick=231 agents=1024 camera=(-57.00, 24.00, -53.00) api=Direct3D11
+2026-10-05T06:50:56.0779686Z frame=348 tick=351 agents=1024 camera=(-57.00, 24.00, -53.00) api=Direct3D11

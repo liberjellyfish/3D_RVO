@@ -51,6 +51,9 @@ namespace Rvo.Editor
         {
             string output = SessionState.GetString(Key, "");
             if (output.Length == 0 || !EditorApplication.isPlaying || EditorApplication.isCompiling) return;
+            // A hidden editor with no active Game view can stop scheduling player frames.
+            // Captures must advance simulation/animation, not save the same frame three times.
+            EditorApplication.QueuePlayerLoopUpdate();
             if (started == 0) started = EditorApplication.timeSinceStartup;
             try
             {

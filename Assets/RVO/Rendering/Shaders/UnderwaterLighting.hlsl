@@ -29,7 +29,7 @@ float3 ShadeUnderwaterReceiver(float3 albedo, float3 position, float3 normal)
     return albedo * (float3(0.22, 0.22, 0.22) + direct);
 }
 
-float3 ShadeUnderwaterPbr(float3 albedo, float3 position, float3 normal, float smoothness, float occlusion)
+float3 ShadeUnderwaterPbr(float3 albedo, float3 position, float3 normal, float smoothness, float occlusion, float causticGain)
 {
     float3 view = GetWorldSpaceNormalizeViewDir(position);
     BRDFData brdf;
@@ -38,7 +38,7 @@ float3 ShadeUnderwaterPbr(float3 albedo, float3 position, float3 normal, float s
     Light sun = GetMainLight(TransformWorldToShadowCoord(position));
     // 共享光路和阴影，焦散只进入直射辐照度；观察雾仍由合成 Pass 唯一负责。
     half3 irradiance = sun.color * sun.distanceAttenuation * sun.shadowAttenuation;
-    irradiance *= UnderwaterSunTransmittance(position, sun.direction) * ReceiverCaustic(position, sun.direction);
+    irradiance *= UnderwaterSunTransmittance(position, sun.direction) * (1 + causticGain * (ReceiverCaustic(position, sun.direction) - 1));
     half3 direct = LightingPhysicallyBased(brdf, irradiance, sun.direction, 1, normal, view);
     // 场景的三色环境光显式共享给 indirect 鱼和普通 Mesh，避免未烘焙 SH 令一类接收面全黑。
     half3 ambient = _OceanEnabled > 0.5

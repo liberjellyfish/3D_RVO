@@ -25,6 +25,7 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
+    - _CausticGain: 1.8
     - _Cull: 2
     - _ReefDetail: 1
     - _Smoothness: 0.22

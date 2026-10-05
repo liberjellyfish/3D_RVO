@@ -72,7 +72,7 @@ namespace Rvo.Editor
         {
             if (Application.isPlaying) throw new InvalidOperationException("Exit Play before baking.");
             var timer = System.Diagnostics.Stopwatch.StartNew();
-            var map = VolumeBake.Bake(profile.Volume, profile.Scenario.Radius, VolumeBake.DenseDemoBoxes(profile.Volume));
+            var map = VolumeBake.Bake(profile.Volume, profile.Scenario.VolumeClearanceRadius, VolumeBake.DenseDemoBoxes(profile.Volume));
             string path = Path.ChangeExtension(AssetDatabase.GetAssetPath(profile), null) + "_Volume";
             File.WriteAllBytes(path + ".bytes", VolumeBake.Encode(map)); AssetDatabase.ImportAsset(path + ".bytes", ImportAssetOptions.ForceSynchronousImport);
             var asset = AssetDatabase.LoadAssetAtPath<BakedNavigationVolume>(path + ".asset");

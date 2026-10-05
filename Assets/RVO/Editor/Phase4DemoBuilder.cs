@@ -73,7 +73,7 @@ namespace Rvo.Editor
                     var bridge = root.AddComponent<FishLiveBridge>(); bridge.Source = source; bridge.Renderer = renderer;
                     if (ocean) root.AddComponent<FishBenchmarkRecorder>().Live = bridge;
                     // 静态可视障碍只从不可变烘焙数据生成一次，不回写地图。
-                    var map = source.Profile.BakedVolume.Load(source.Profile.Volume, source.Profile.Scenario.Radius);
+                    var map = source.Profile.BakedVolume.Load(source.Profile.Volume, source.Profile.Scenario.VolumeClearanceRadius);
                     camera.transform.LookAt((Vector3)((map.Min + map.Max) * 0.5f));
                     if (ocean) ConfigureOceanLiveCamera(camera);
                     var environment = new GameObject("Baked obstacles (visual only)");

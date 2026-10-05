@@ -23,14 +23,14 @@ namespace Rvo
             Benchmark.Validate();
             if (Simulation.Dimension == SimulationDimension.Full3D)
             {
-                Volume.Validate(Scenario.Radius);
+                Volume.Validate(Scenario.VolumeClearanceRadius);
                 if (Navigation.Enabled || (Simulation.Avoidance != AvoidanceAlgorithm.None && Simulation.Avoidance != AvoidanceAlgorithm.ORCA) ||
                     Simulation.NeighborSearch == NeighborSearchAlgorithm.KdTree)
                     throw new System.ArgumentException("Full3D requires volume navigation, None/ORCA, and BruteForce/SpatialHash.");
                 if (AgentCountTiers.x < 1 || AgentCountTiers.y < AgentCountTiers.x || AgentCountTiers.z < AgentCountTiers.y)
                     throw new System.ArgumentException("Agent tiers must be increasing positive counts.");
                 if (BakedVolume == null) throw new System.ArgumentException("Bake the Full3D volume first.");
-                BakedVolume.Load(Volume, Scenario.Radius);
+                BakedVolume.Load(Volume, Scenario.VolumeClearanceRadius);
                 return;
             }
             if (Navigation.Enabled)

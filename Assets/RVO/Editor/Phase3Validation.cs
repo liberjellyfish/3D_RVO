@@ -18,7 +18,7 @@ namespace Rvo.Editor
             if (Application.isPlaying) throw new InvalidOperationException("Exit Play before standalone validation.");
             var profile = AssetDatabase.LoadAssetAtPath<SimulationProfile>(Phase3DemoBuilder.ProfilePath);
             if (profile == null) throw new InvalidOperationException("Create and bake the Phase 3 demo first.");
-            profile.ValidateProfile(); var map = profile.BakedVolume.Load(profile.Volume, profile.Scenario.Radius);
+            profile.ValidateProfile(); var map = profile.BakedVolume.Load(profile.Volume, profile.Scenario.VolumeClearanceRadius);
             const string folder = "Documentation/RVO/Verification/Phase3"; Directory.CreateDirectory(folder);
             var summary = new StringBuilder();
             summary.AppendLine($"Unity {Application.unityVersion}; CPU {SystemInfo.processorType}; RAM {SystemInfo.systemMemorySize} MiB");

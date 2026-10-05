@@ -38,6 +38,8 @@ MonoBehaviour:
     Radius: 0.65
     MaxSpeed: 5
     ArrivalDistance: 0.2
+    VolumeSizeVariation: 0.3
+    VolumeSpeedVariation: 0.25
   Benchmark:
     WarmupTicks: 300
     MeasuredTicks: 1800

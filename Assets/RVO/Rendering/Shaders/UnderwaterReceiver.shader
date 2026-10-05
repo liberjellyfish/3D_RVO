@@ -5,6 +5,7 @@ Shader "RVO/Underwater Receiver"
         _BaseColor("Receiver albedo",Color)=(0.18,0.24,0.23,1)
         _Smoothness("Smoothness",Range(0,1))=0.2
         _ReefDetail("Reef material variation",Range(0,1))=0
+        _CausticGain("Water turbulence on lit surface",Range(0,4))=1
         [Enum(UnityEngine.Rendering.CullMode)] _Cull("Cull",Float)=2
     }
     SubShader
@@ -17,7 +18,7 @@ Shader "RVO/Underwater Receiver"
         #include "UnderwaterLighting.hlsl"
         CBUFFER_START(UnityPerMaterial)
         float4 _BaseColor;
-        float _Cull, _Smoothness, _ReefDetail;
+        float _Cull, _Smoothness, _ReefDetail, _CausticGain;
         CBUFFER_END
         struct A { float4 positionOS:POSITION; float3 normalOS:NORMAL; float2 uv:TEXCOORD0; };
         struct V { float4 positionCS:SV_POSITION; float3 positionWS:TEXCOORD0; float3 normalWS:TEXCOORD1; float2 uv:TEXCOORD2; };
@@ -30,7 +31,7 @@ Shader "RVO/Underwater Receiver"
             float strata = 0.9 + 0.1 * sin(i.positionWS.y * 1.7 + sin(i.positionWS.x * 0.23) + sin(i.positionWS.z * 0.31));
             float3 albedo = _BaseColor.rgb * lerp(1, strata, _ReefDetail);
             albedo = lerp(albedo, albedo * float3(0.7,0.85,0.58), _ReefDetail * saturate(n.y) * 0.32);
-            float3 color = _ReefDetail > 0 ? ShadeUnderwaterPbr(albedo, i.positionWS, n, _Smoothness, 1)
+            float3 color = _ReefDetail > 0 ? ShadeUnderwaterPbr(albedo, i.positionWS, n, _Smoothness, 1, _CausticGain)
                 : ShadeUnderwaterReceiver(albedo, i.positionWS, n);
             return half4(color, 1);
         }

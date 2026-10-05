@@ -13,12 +13,12 @@ namespace Rvo.Editor
         {
             if (Application.isPlaying) throw new InvalidOperationException("Exit Play before standalone profiling.");
             var profile = AssetDatabase.LoadAssetAtPath<SimulationProfile>(Phase3DemoBuilder.ProfilePath);
-            var map = profile.BakedVolume.Load(profile.Volume, profile.Scenario.Radius);
+            var map = profile.BakedVolume.Load(profile.Volume, profile.Scenario.VolumeClearanceRadius);
             var settings = profile.Simulation; settings.AgentCount = 16;
             var warmModules = Phase3ModuleFactory.Create(settings, profile.Scenario, profile.Volume, map, out _, out _);
             using (var warm = new SimulationWorld(settings, profile.Scenario, warmModules)) warm.Step();
             // 重载地图，避免预热世界掩盖共享索引的首次构建成本。
-            map = profile.BakedVolume.Load(profile.Volume, profile.Scenario.Radius);
+            map = profile.BakedVolume.Load(profile.Volume, profile.Scenario.VolumeClearanceRadius);
             settings.AgentCount = 1024;
             var timer = System.Diagnostics.Stopwatch.StartNew();
             var modules = Phase3ModuleFactory.Create(settings, profile.Scenario, profile.Volume, map, out var navigation, out var solver);
@@ -55,7 +55,7 @@ namespace Rvo.Editor
         {
             if (Application.isPlaying) throw new InvalidOperationException("Exit Play before standalone profiling.");
             var profile = AssetDatabase.LoadAssetAtPath<SimulationProfile>(Phase3DemoBuilder.ProfilePath);
-            var map = profile.BakedVolume.Load(profile.Volume, profile.Scenario.Radius);
+            var map = profile.BakedVolume.Load(profile.Volume, profile.Scenario.VolumeClearanceRadius);
             string folder = "Documentation/RVO/Verification/Phase3/Performance";
             Directory.CreateDirectory(folder);
             var warmSettings = profile.Simulation; warmSettings.AgentCount = 16;

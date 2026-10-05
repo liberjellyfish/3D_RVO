@@ -67,7 +67,7 @@ namespace Rvo.Rendering
                     if (controls != null) controls.BeginFollow(target);
                     var source=Fish.GetComponent<VolumeSimulationBootstrap>();
                     if (source != null && source.Profile != null)
-                        navigation=source.Profile.BakedVolume.Load(source.Profile.Volume,source.Profile.Scenario.Radius);
+                        navigation=source.Profile.BakedVolume.Load(source.Profile.Volume,source.Profile.Scenario.VolumeClearanceRadius);
                 }
             }
             Fish?.InvalidateDisplayHistory();
