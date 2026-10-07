@@ -1,0 +1,3 @@
+Exterior ring crossing events=301
+Over-wall crossing events=45
+Counts are events, not unique agents; portal CSV separates unique agents per aperture.

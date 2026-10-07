@@ -1,10 +1,12 @@
 # Phase 2：二维导航与避障（收尾基线）
 
-阶段决定（2026-09-29）：用户完成后续人工验证并接受 2D 收尾；256 agent 约 1–2 分钟、1024 agent 约 20 分钟整体完成，后者仍有高频路径长时间滞留。保留当前实现与限制，下一步按 [PHASE3_PLAN.md](PHASE3_PLAN.md) 进入真实 XYZ 导航。本次只更新规划，不修改代码或新增验证结果。
+> 历史专题记录：下文的默认参数、实现状态和测试数字对应文中日期及当时版本。当前系统结构与运行配置见 [ARCHITECTURE.md](ARCHITECTURE.md)，最新主场景证据见 [2048 多通路报告](VERIFICATION_REEF_NETWORK2048.md)。
+
+阶段决定（2026-09-29）：用户完成后续人工验证并接受 2D 收尾；256 agent 约 1–2 分钟、1024 agent 约 20 分钟整体完成，后者仍有高频路径长时间滞留。当时保留实现与限制，转入真实 XYZ 导航；现已实现的三维主线见 [当前三维导航说明](ARCHITECTURE.md#navigation)。下文保留当时的设计和测量范围。
 
 本轮新增：`TrafficRecovery` 通行优先级/主动退让、拥堵区域临时代价、失败请求轮转重试、安全余量回归，以及独立目标十字与静态显示缓存。配置、算法边界和验证步骤见 [PHASE2_TRAFFIC.md](PHASE2_TRAFFIC.md)。下文保留基础搜索/查询/安全证书设计，动态约束的等分责任在启用协调时改为互补优先级比例。
 
-更新：2026-09-29。以当前 512×512 离线烘焙地图为准；旧版运行时随机刷新已移除。历史首版测试见 [VERIFICATION_P2.md](VERIFICATION_P2.md)，本轮证据见 [VERIFICATION_P2_OPTIMIZATION.md](VERIFICATION_P2_OPTIMIZATION.md)。
+更新：2026-09-29。以当前 512×512 离线烘焙地图为准；旧版运行时随机刷新已移除。历史首版测试见 [VERIFICATION_P2.md](VERIFICATION_P2.md)，本轮证据见 [二维优化证据索引](VALIDATION.md#phase2-evidence)。
 
 ## 地图与共享索引
 

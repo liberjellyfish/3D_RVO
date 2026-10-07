@@ -10,35 +10,27 @@ namespace Rvo.Tests
     public sealed class ReefVariationTests
     {
         [Test]
-        public void AuthoredUpperBranchesAndLowerDetourRemainNavigable()
+        public void PlannedNetworkHasTwelveSeparateConnectionsWithTwoDepthOptions()
         {
             var profile=AssetDatabase.LoadAssetAtPath<SimulationProfile>("Assets/RVO/Demo/OceanReef/ReefNavigation.asset");
             var map=profile.BakedVolume.Load(profile.Volume,profile.Scenario.VolumeClearanceRadius);
-            var search=new VolumePathfinder(profile.Volume.SearchCapacity);
-            var points=new float3[profile.Volume.SearchCapacity+2];
-            // Upper windows, across-crown connections, and lower S-route endpoints.
-            var pairs=new[] {
-                new float3(-25,22,-21),new float3(-16,22,-21),
-                new float3(-16,22,-21),new float3(16,19,-21),
-                new float3(-25,19,21),new float3(-16,19,21),
-                new float3(-16,19,21),new float3(16,22,21),
-                new float3(-14,-7,0),new float3(14,-7,0)
-            };
-            for(int i=0;i<pairs.Length;i+=2)
+            Assert.That(map.Resolution,Is.EqualTo(192));
+            Assert.That(profile.AgentCountTiers.z,Is.EqualTo(2048));
+            Assert.That(profile.Scenario.VolumeSpawns,Is.EqualTo(VolumeSpawnPattern.DistributedRooms));
+            var portals=Rvo.Editor.ReefRouteLayout.Portals();
+            Assert.That(portals.Length,Is.EqualTo(12));
+            foreach(var portal in portals)
             {
-                Assert.That(map.PointClear(pairs[i]),Is.True,$"Entry {i}");
-                Assert.That(map.PointClear(pairs[i+1]),Is.True,$"Exit {i}");
-                search.Begin(map,pairs[i],pairs[i+1],1,true); search.Advance(1000000);
-                Assert.That(search.Status,Is.EqualTo(VolumePathStatus.Ready),$"Branch {i/2}");
-                int count=search.CopyPath(points);
-                for(int j=1;j<count;j++) Assert.That(map.SegmentClear(points[j-1],points[j]),Is.True);
+                var direction=portal.Axis==0 ? Vector3.right : Vector3.forward;
+                foreach(float height in new[] { (-34+portal.BaffleY-6)*0.5f,(36+portal.BaffleY+6)*0.5f })
+                {
+                    var center=portal.Center(height);
+                    Assert.That(map.SegmentClear(center-direction*6,center+direction*6),Is.True,$"Portal {portal.Axis}/{portal.Wall}/{portal.Lane} at y={height}");
+                }
+                var blocked=portal.Center(portal.BaffleY);
+                Assert.That(map.SegmentClear(blocked-direction*6,blocked+direction*6),Is.False,"Depth baffle must affect routing");
             }
-            Assert.That(map.SegmentClear(pairs[8],pairs[9]),Is.False,"Lower fins must force a detour or depth change.");
-            var formerSlit=new float3(-12.46719f,7.959142f,-4.373017f);
-            Assert.That(map.PointClear(formerSlit),Is.True);
-            Assert.That(map.Anchor(formerSlit),Is.GreaterThanOrEqualTo(0),"Crown/needle buffer must support replanning.");
         }
-
         [Test]
         public void TraitsAndSpawnsAreStableAcrossTiersAndKeepIndividualClearance()
         {
@@ -47,12 +39,12 @@ namespace Rvo.Tests
             var map = profile.BakedVolume.Load(profile.Volume, profile.Scenario.VolumeClearanceRadius);
             var settings = profile.Simulation;
             using var small = new AgentStorage(16);
-            using var large = new AgentStorage(1024);
+            using var large = new AgentStorage(2048);
             var initializer = new VolumeScenarioInitializer(map);
             settings.AgentCount = 16; initializer.Initialize(settings, profile.Scenario, small.Initialization);
-            settings.AgentCount = 1024; initializer.Initialize(settings, profile.Scenario, large.Initialization);
+            settings.AgentCount = 2048; initializer.Initialize(settings, profile.Scenario, large.Initialization);
             float minRadius = float.MaxValue, maxRadius = 0, minSpeed = float.MaxValue, maxSpeed = 0;
-            for (int i=0;i<1024;i++)
+            for (int i=0;i<2048;i++)
             {
                 var p = large.Read.Parameters[i];
                 minRadius = math.min(minRadius,p.Radius); maxRadius = math.max(maxRadius,p.Radius);
@@ -76,13 +68,24 @@ namespace Rvo.Tests
             Assert.That(maxRadius-minRadius,Is.GreaterThan(0.37f));
             Assert.That(maxSpeed-minSpeed,Is.GreaterThan(2.4f));
             Assert.That(map.ClearanceRadius,Is.GreaterThanOrEqualTo(maxRadius+profile.Volume.SafetyMargin));
+            var origins=new int[18]; var destinations=new int[18]; var directions=new int[6];
+            for(int i=0;i<large.Read.Count;i++)
+            {
+                var start=large.Read.Positions[i]; var goal=large.Read.Goals[i];
+                int Room(float3 p) => (p.y<0 ? 0 : 9)+(p.z<-16 ? 0 : p.z>16 ? 2 : 1)*3+(p.x<-16 ? 0 : p.x>16 ? 2 : 1);
+                origins[Room(start)]++; destinations[Room(goal)]++;
+                for(int axis=0;axis<3;axis++) if(math.abs(goal[axis]-start[axis])>20) directions[axis*2+(goal[axis]>start[axis] ? 1 : 0)]++;
+            }
+            foreach(int count in origins) Assert.That(count,Is.GreaterThan(100),"All 18 start rooms must be populated");
+            foreach(int count in destinations) Assert.That(count,Is.GreaterThan(100),"All 18 destination rooms must be populated");
+            foreach(int count in directions) Assert.That(count,Is.GreaterThan(300),"Traffic must exercise +/- X, Y and Z");
 
             // Probe real crossing routes, including those whose straight line hits the reef.
             Assert.That(map.ObstacleCount,Is.EqualTo(48));
             var search = new VolumePathfinder(profile.Volume.SearchCapacity);
             var points = new float3[profile.Volume.SearchCapacity+2];
             int detours = 0;
-            for(int i=0;i<1024;i+=31)
+            for(int i=0;i<2048;i+=61)
             {
                 var start = large.Read.Positions[i]; var goal = large.Read.Goals[i];
                 if(!map.SegmentClear(start,goal)) detours++;

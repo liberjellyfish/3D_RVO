@@ -1,0 +1,4 @@
+run,obstacles,agents,ticks,setup_ms,p50_ms,p95_ms,p99_ms,nav_mean_ms,neighbors_mean_ms,avoidance_mean_ms,integration_mean_ms,ready_p50_s,ready_p95_s,ready_max_s,never_ready,first_arrived,current_arrived,max_wait_s,requests,coarse,fallbacks,replans,expanded,limited_agent_ticks,sampled_swept_pairs,static_violations,gc_bytes
+1,48,2048,1800,181.949,6.1922,12.8295,16.2753,1.4490,4.0581,1.5426,0.0322,1.533,3.467,3.667,0,2048,2048,3.600,6099,3508,0,0,84146,0,0,0,0
+2,48,2048,1800,174.755,6.3486,12.8374,16.4545,1.4353,4.1873,1.5499,0.0318,1.533,3.467,3.667,0,2048,2048,3.600,6099,3508,0,0,84146,0,0,0,0
+3,48,2048,1800,172.552,6.2461,13.0137,17.0475,1.4917,4.1341,1.5595,0.0332,1.533,3.467,3.667,0,2048,2048,3.600,6099,3508,0,0,84146,0,0,0,0

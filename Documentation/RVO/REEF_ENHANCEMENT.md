@@ -1,5 +1,7 @@
 # 礁石海洋表现优化（2026-10-05）
 
+> 历史专题记录：下文的默认参数、实现状态和测试数字对应文中日期及当时版本。当前系统结构与运行配置见 [ARCHITECTURE.md](ARCHITECTURE.md)，最新主场景证据见 [2048 多通路报告](VERIFICATION_REEF_NETWORK2048.md)。
+
 入口仍为 `Assets/RVO/Demo/OceanReef/OceanReefLive.unity`，菜单 `Tools/RVO/Open Reef Presentation`。默认 1024 条真实导航鱼、ORCA、SMAA。原 Phase4 对照场景不重建。
 
 ## 水纹与材质

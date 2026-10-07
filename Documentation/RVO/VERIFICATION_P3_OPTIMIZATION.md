@@ -1,5 +1,7 @@
 # Phase 3 寻路性能与观察体验优化
 
+> 历史专题记录：下文的默认参数、实现状态和测试数字对应文中日期及当时版本。当前系统结构与运行配置见 [ARCHITECTURE.md](ARCHITECTURE.md)，最新主场景证据见 [2048 多通路报告](VERIFICATION_REEF_NETWORK2048.md)。
+
 日期：2026-09-30。Unity 6000.0.63f1，i7-12650H，16 GB 内存；Editor 测试，固定 seed 7、30 Hz。保留已有 Phase 3 工作和 Phase 1/2 实现。
 
 ## 瓶颈与取舍

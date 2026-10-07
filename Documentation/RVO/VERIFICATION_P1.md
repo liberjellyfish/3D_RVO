@@ -1,5 +1,7 @@
 # Phase 1 工程交付与验证记录
 
+> 历史专题记录：下文的默认参数、实现状态和测试数字对应文中日期及当时版本。当前系统结构与运行配置见 [ARCHITECTURE.md](ARCHITECTURE.md)，最新主场景证据见 [2048 多通路报告](VERIFICATION_REEF_NETWORK2048.md)。
+
 日期：2026-09-27（Asia/Shanghai）。本轮完成 P1.4 RVO、P1.5 ORCA 2D、P1.6 Spatial Hash，以及小规模验证、Jobs/Burst、诊断与报告工具。**正式 100 / 1k / 10k 压测没有执行；Phase 1 整体规模验收和冻结未完成。** Phase 2 体素导航没有提前实现。
 
 ## 1. 实现内容
@@ -132,7 +134,7 @@ Hash 在稀疏参考后端减少候选并有实际收益；小 N 下 Burst 暴�
 
 ## 6. 可照做的验证
 
-按 [README 的10步](README.md#unity-操作步骤) 操作即可复核。本轮报告自动测试可从 Test Runner 运行全部 EditMode 和 PlayMode 生成；不要点三档配置的显式 Benchmark 菜单。
+当前场景入口见 [README](README.md)，历史回归与当前测试范围见 [验证指南](VALIDATION.md)。可打开 Phase13_Demo 对照四种算法；本页报告仍对应文中当时测试范围。当前完整 EditMode 还包括后续二维吞吐测试，不能把 Run All 当作仅复核本轮小规模测试；三档配置的显式 Benchmark 菜单会另外执行测量。
 
 建议人工顺序：HeadOn/None（碰撞对照）→ VO → RVO → ORCA/bias0（停滞）→ ORCA/bias0.05（到达）；再切 Crossing、CircleSwap、OpposingGroups 和 RandomCrowd，分别观察碰撞与未到达。用相同 Tick 比较，注意切换场景会恢复该资产默认值。暂停选择 Agent，检查紫色 ORCA 边界可行侧和状态；多次 Reset/停启后检查 Console。
 

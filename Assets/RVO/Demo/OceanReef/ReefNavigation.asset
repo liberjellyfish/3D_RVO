@@ -34,12 +34,13 @@ MonoBehaviour:
   Scenario:
     Kind: 5
     Seed: 7
-    Extent: 64
+    Extent: 96
     Radius: 0.65
     MaxSpeed: 5
     ArrivalDistance: 0.2
     VolumeSizeVariation: 0.3
     VolumeSpeedVariation: 0.25
+    VolumeSpawns: 1
   Benchmark:
     WarmupTicks: 300
     MeasuredTicks: 1800
@@ -67,7 +68,7 @@ MonoBehaviour:
     RecoveryCooldownSeconds: 0
   BakedMap: {fileID: 0}
   Volume:
-    Resolution: 128
+    Resolution: 192
     CellSize: 0.5
     SafetyMargin: 0.08
     SearchSlots: 2
@@ -78,4 +79,4 @@ MonoBehaviour:
     UseCoarseRoutes: 1
     AcceptanceTicks: 18000
   BakedVolume: {fileID: 11400000, guid: 0ffced994576b8c4d8e25cedf4d9c097, type: 2}
-  AgentCountTiers: {x: 16, y: 256, z: 1024}
+  AgentCountTiers: {x: 128, y: 1024, z: 2048}

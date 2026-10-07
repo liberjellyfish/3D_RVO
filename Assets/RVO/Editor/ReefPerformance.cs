@@ -22,19 +22,19 @@ namespace Rvo.Editor
             return fallback;
         }
 
-        [MenuItem("Tools/RVO/Profile Reef (1024 agents, 1800 ticks x 3)")]
+        [MenuItem("Tools/RVO/Profile Reef (largest tier, 1800 ticks x 3)")]
         public static void Run()
         {
             if (Application.isPlaying) throw new InvalidOperationException("Exit Play before profiling.");
             var profile = AssetDatabase.LoadAssetAtPath<SimulationProfile>(OceanReefBuilder.Folder + "/ReefNavigation.asset");
-            string folder = Argument("-reef-output", "Documentation/RVO/Verification/ReefRoutes48/Performance");
+            string folder = Argument("-reef-output", "Documentation/RVO/Verification/ReefNetwork2048/Performance");
             if (File.Exists(folder + "/summary.csv")) throw new IOException("Choose a fresh evidence directory.");
             Directory.CreateDirectory(folder);
             var settings = profile.Simulation; settings.AgentCount = 16; settings.MeasureStages = true;
             var warmMap = profile.BakedVolume.Load(profile.Volume, profile.Scenario.VolumeClearanceRadius);
             var warmModules = Phase3ModuleFactory.Create(settings, profile.Scenario, profile.Volume, warmMap, out _, out _);
             using (var warm = new SimulationWorld(settings, profile.Scenario, warmModules)) for (int i = 0; i < 5; i++) warm.Step();
-            settings.AgentCount = 1024;
+            settings.AgentCount = int.Parse(Argument("-reef-agents",profile.AgentCountTiers.z.ToString()));
             const int ticks = 1800;
             var summary = new StringBuilder("run,obstacles,agents,ticks,setup_ms,p50_ms,p95_ms,p99_ms,nav_mean_ms,neighbors_mean_ms,avoidance_mean_ms,integration_mean_ms,ready_p50_s,ready_p95_s,ready_max_s,never_ready,first_arrived,current_arrived,max_wait_s,requests,coarse,fallbacks,replans,expanded,limited_agent_ticks,sampled_swept_pairs,static_violations,gc_bytes\n");
             int repeats=Mathf.Clamp(int.Parse(Argument("-reef-repeats","3")),1,10);
@@ -47,12 +47,14 @@ namespace Rvo.Editor
                 {
                     double setup = clock.Elapsed.TotalMilliseconds;
                     var metrics = new VolumeRunMetrics(settings.AgentCount);
+                    var routeEvidence=new ReefRouteEvidence(world.Snapshot,map);
                     var times = new double[ticks]; double nav = 0, neighbors = 0, avoidance = 0, integration = 0;
                     long expanded = 0, collisions = 0, violations = 0;
                     var curve = new StringBuilder("tick,total_ms,navigation_ms,neighbors_ms,avoidance_ms,integration_ms,expanded,pending,failed,coarse,fallbacks,replans,first_arrived,current_arrived,never_ready,safety_pair_checks,limited\n");
                     for (int t = 0; t < ticks; t++)
                     {
                         world.Step(); metrics.Observe(world, navigation, solver);
+                        routeEvidence.Observe(world);
                         var m = world.LastMetrics; times[t] = m.TotalSimulationMilliseconds;
                         nav += m.PreferredMilliseconds; neighbors += m.NeighborMilliseconds;
                         avoidance += m.AvoidanceMilliseconds; integration += m.IntegrationMilliseconds;
@@ -66,7 +68,8 @@ namespace Rvo.Editor
                         curve.AppendLine(FormattableString.Invariant($"{world.Tick},{times[t]:F5},{m.PreferredMilliseconds:F5},{m.NeighborMilliseconds:F5},{m.AvoidanceMilliseconds:F5},{m.IntegrationMilliseconds:F5},{navigation.LastExpandedNodes},{navigation.PendingCount},{navigation.FailedCount},{navigation.CoarsePaths},{navigation.CoarseFallbacks},{navigation.RecoveryReplans},{metrics.FirstArrived},{metrics.CurrentArrived},{metrics.NeverReady},{solver.LastSafetyPairChecks},{solver.LastLimitedAgents}"));
                     }
                     Array.Sort(times);
-                    summary.AppendLine(FormattableString.Invariant($"{run},{map.ObstacleCount},1024,{ticks},{setup:F3},{times[899]:F4},{times[1709]:F4},{times[1781]:F4},{nav/ticks:F4},{neighbors/ticks:F4},{avoidance/ticks:F4},{integration/ticks:F4},{metrics.ReadyPercentile(0.5,settings.FixedDeltaTime):F3},{metrics.ReadyPercentile(0.95,settings.FixedDeltaTime):F3},{metrics.ReadyPercentile(1,settings.FixedDeltaTime):F3},{metrics.NeverReady},{metrics.FirstArrived},{metrics.CurrentArrived},{metrics.LongestWait:F3},{navigation.RequestCount},{navigation.CoarsePaths},{navigation.CoarseFallbacks},{navigation.RecoveryReplans},{expanded},{metrics.LimitedAgentTicks},{collisions},{violations},{metrics.ManagedBytes}"));
+                    summary.AppendLine(FormattableString.Invariant($"{run},{map.ObstacleCount},{settings.AgentCount},{ticks},{setup:F3},{times[899]:F4},{times[1709]:F4},{times[1781]:F4},{nav/ticks:F4},{neighbors/ticks:F4},{avoidance/ticks:F4},{integration/ticks:F4},{metrics.ReadyPercentile(0.5,settings.FixedDeltaTime):F3},{metrics.ReadyPercentile(0.95,settings.FixedDeltaTime):F3},{metrics.ReadyPercentile(1,settings.FixedDeltaTime):F3},{metrics.NeverReady},{metrics.FirstArrived},{metrics.CurrentArrived},{metrics.LongestWait:F3},{navigation.RequestCount},{navigation.CoarsePaths},{navigation.CoarseFallbacks},{navigation.RecoveryReplans},{expanded},{metrics.LimitedAgentTicks},{collisions},{violations},{metrics.ManagedBytes}"));
+                    routeEvidence.Write(folder,run);
                     File.WriteAllText($"{folder}/curve-{run}.csv", curve.ToString());
                     var agentsCsv = new StringBuilder("agent,first_ready_tick,first_arrival_tick,status,x,y,z,goal_x,goal_y,goal_z,anchor\n");
                     for (int i = 0; i < settings.AgentCount; i++)
@@ -76,8 +79,8 @@ namespace Rvo.Editor
                     }
                     File.WriteAllText($"{folder}/agents-{run}.csv", agentsCsv.ToString());
                     File.WriteAllText(folder + "/summary.csv", summary.ToString());
-                    File.WriteAllText(folder + "/environment.txt", $"Unity={Application.unityVersion}; CPU={SystemInfo.processorType}; editor={Application.isEditor}; seed={profile.Scenario.Seed}; backend={settings.Backend}; dt={settings.FixedDeltaTime}; resolution={map.Resolution}; cell={map.CellSize}; obstacles={map.ObstacleCount}; coarseCell={map.Coarse?.CellSize}; freeCells={map.FreeCells}; mapBytes={map.StorageBytes}\nBudget: expansions={profile.Volume.ExpansionsPerTick}, requests={profile.Volume.RequestsPerTick}, slots={profile.Volume.SearchSlots}, weight={profile.Volume.HeuristicWeight}.\nNo rendering. Separate 16-agent warmup, fresh decoded map each run. Setup includes spawn and landmarks, excludes decode and Burst compilation. Tick timing includes startup requests and stage completion fences. Pair safety sampled every 30 ticks; static swept safety every tick. 1800 ticks = 60 simulated seconds.\n");
-                    Debug.Log($"Reef run {run}: obstacles={map.ObstacleCount}, tick P95={times[1709]:F3}, ready={1024-metrics.NeverReady}, arrived={metrics.FirstArrived}, static violations={violations}");
+                    File.WriteAllText(folder + "/environment.txt", $"Unity={Application.unityVersion}; CPU={SystemInfo.processorType}; editor={Application.isEditor}; seed={profile.Scenario.Seed}; backend={settings.Backend}; dt={settings.FixedDeltaTime}; resolution={map.Resolution}; cell={map.CellSize}; obstacles={map.ObstacleCount}; coarseCell={map.Coarse?.CellSize}; freeCells={map.FreeCells}; mapBytes={map.StorageBytes}\nBudget: expansions={profile.Volume.ExpansionsPerTick}, requests={profile.Volume.RequestsPerTick}, slots={profile.Volume.SearchSlots}, weight={profile.Volume.HeuristicWeight}.\nNo rendering. Separate 16-agent warmup, shared immutable decoded map with prewarmed landmarks. Each run creates an independent world; setup includes spawning and native search storage, excludes decode, initial landmark preparation and Burst compilation. Tick timing includes startup requests and stage completion fences. Pair safety sampled every 30 ticks; static swept safety every tick. 1800 ticks = 60 simulated seconds.\n");
+                    Debug.Log($"Reef run {run}: obstacles={map.ObstacleCount}, tick P95={times[1709]:F3}, ready={settings.AgentCount-metrics.NeverReady}, arrived={metrics.FirstArrived}, static violations={violations}");
                 }
             }
         }

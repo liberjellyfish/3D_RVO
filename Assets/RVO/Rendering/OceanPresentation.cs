@@ -41,8 +41,11 @@ namespace Rvo.Rendering
         public void SelectShot(int index)
         {
             shot = (index % 3 + 3) % 3;
-            Vector3[] eyes = { new Vector3(-42,3,-29), new Vector3(-25,1,-9), new Vector3(-57,24,-53) };
-            Vector3[] targets = { new Vector3(0,1,0), new Vector3(3,0,0), new Vector3(2,0,0) };
+            bool network=Fish!=null && Fish.GetComponent<VolumeSimulationBootstrap>()?.Profile?.Scenario.VolumeSpawns==VolumeSpawnPattern.DistributedRooms;
+            Vector3[] eyes = network ? new[] { new Vector3(-92,74,-100),new Vector3(-34,6,-34),new Vector3(0,125,-0.1f) }
+                : new[] { new Vector3(-42,3,-29),new Vector3(-25,1,-9),new Vector3(-57,24,-53) };
+            Vector3[] targets = network ? new[] { new Vector3(0,-2,0),new Vector3(0,0,0),new Vector3(0,0,0) }
+                : new[] { new Vector3(0,1,0),new Vector3(3,0,0),new Vector3(2,0,0) };
             view.transform.position = eyes[shot]; view.transform.LookAt(targets[shot]);
             var controls = cameraControls;
             if (controls != null) { controls.StopFollowing(); controls.Pivot = targets[shot]; }

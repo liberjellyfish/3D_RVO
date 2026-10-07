@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Passed" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-06 05:01:40Z" end-time="2026-10-06 05:01:42Z" duration="2.0175148">
+  <test-suite type="TestSuite" id="1032" name="3D_RVO" fullname="3D_RVO" runstate="Runnable" testcasecount="16" result="Passed" start-time="2026-10-06 05:01:40Z" end-time="2026-10-06 05:01:42Z" duration="2.017515" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1026" name="Rvo.Tests.PlayMode.dll" fullname="D:/unityhub/tries/3D_RVO/Library/ScriptAssemblies/Rvo.Tests.PlayMode.dll" runstate="Runnable" testcasecount="16" result="Passed" start-time="2026-10-06 05:01:40Z" end-time="2026-10-06 05:01:42Z" duration="2.010378" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="9772" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1027" name="Rvo" fullname="Rvo" runstate="Runnable" testcasecount="16" result="Passed" start-time="2026-10-06 05:01:40Z" end-time="2026-10-06 05:01:42Z" duration="2.009515" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1028" name="Tests" fullname="Rvo.Tests" runstate="Runnable" testcasecount="16" result="Passed" start-time="2026-10-06 05:01:40Z" end-time="2026-10-06 05:01:42Z" duration="2.009077" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1021" name="ReefNetworkPresentationTests" fullname="Rvo.Tests.ReefNetworkPresentationTests" classname="Rvo.Tests.ReefNetworkPresentationTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-06 05:01:40Z" end-time="2026-10-06 05:01:42Z" duration="2.007804" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1022" name="NetworkSceneRuns2048WithLiveStrategyHudAndSampledRoutes" fullname="Rvo.Tests.ReefNetworkPresentationTests.NetworkSceneRuns2048WithLiveStrategyHudAndSampledRoutes" methodname="NetworkSceneRuns2048WithLiveStrategyHudAndSampledRoutes" classname="Rvo.Tests.ReefNetworkPresentationTests" runstate="Runnable" seed="1419369013" result="Passed" start-time="2026-10-06 05:01:40Z" end-time="2026-10-06 05:01:42Z" duration="1.998425" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: C:/Users/20505/AppData/LocalLow/DefaultCompany/3D_RVO\TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

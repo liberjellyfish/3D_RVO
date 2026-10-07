@@ -1,8 +1,10 @@
 # OceanLive P0 结构修正与验证
 
+> 历史专题记录：下文的默认参数、实现状态和测试数字对应文中日期及当时版本。当前系统结构与运行配置见 [ARCHITECTURE.md](ARCHITECTURE.md)，最新主场景证据见 [2048 多通路报告](VERIFICATION_REEF_NETWORK2048.md)。
+
 后续画面复核与 P1/P2 实施见 [展示推进记录](OCEAN_P1_P2_PRESENTATION.md)。该轮补齐 indirect 逐对象光照绑定并接入 MotionVectors；下文测试结果和“后续边界”描述的是 P0 当时状态，未在后续轮复跑。
 
-实施日期：2026-10-04。范围依据 [检查规划](OCEANLIVE_RENDER_REARCHITECTURE_REVIEW.md) 第 10 节 P0，原基线 `f3d5911`。本轮完成结构和数值光学闭环；精制礁石、物种网格和正式 GPU 性能矩阵继续按 P1/P2 推进。
+实施日期：2026-10-04。范围为 OceanLive 背景、光程、共享照明及鱼深度的 P0 结构修正，原基线 `f3d5911`。本轮完成结构和数值光学闭环；精制礁石、物种网格和正式 GPU 性能矩阵继续按 P1/P2 推进。
 
 ## 职责与数据流
 

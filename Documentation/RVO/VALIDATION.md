@@ -1,86 +1,110 @@
-# 验证与压测规范
+# 验证、测量与复现指南
 
-2026-09-29 状态：用户已完成 Phase 2 后续人工验证并接受进入 3D，反馈及其时间口径限制见 [PHASE2_TRAFFIC.md](PHASE2_TRAFFIC.md)。本次只更新规划，未运行新测试或性能测量。下文原有 Phase 1 矩阵保留为历史/维护规范；Phase 3 使用文末新增规格，不要求先补齐历史 10k 矩阵。
+更新：2026-10-07。本页说明**当前代码**的检查入口；历史 XML/CSV 只证明报告对应版本和配置的结果。本次文档整理未启动 Unity、未重新运行算法测试或性能矩阵。整体框架见 [ARCHITECTURE.md](ARCHITECTURE.md)。
 
-## 框架测试与算法测试分开
+## 1. 按所改模块选择检查
 
-框架测试中的替身只验证双缓冲与生命周期；P1.3 已新增实际运动、碰撞几何、邻居查询、VO 对照、场景调查和 PlayMode 测试。当前测试清单和实测结果见 [Phase 1 工程验证](VERIFICATION_P1.md)，历史基线见 [P1.3 验证记录](VERIFICATION_P13.md)，不把数值契约通过等同于群体无碰撞。
+Unity 的 **Window → General → Test Runner** 可选 EditMode / PlayMode，相关程序集为 `Rvo.Tests.EditMode` 与 `Rvo.Tests.PlayMode`。先用类名过滤相关检查，涉及多层行为时再运行相应回归。
 
-| 层次 | 必测情况 |
+| 改动范围 | 主要测试类 |
 | --- | --- |
-| 参数 / 生命周期 | 非法配置、未实现模块阻止启动、Scheduled 时重复调度/读快照、完成后提交、重复释放 |
-| 运动 | 目标到达、固定步长、速度上界、XZ 不变量、同 seed 重置 |
-| 几何 | 对向、擦边、平行、零距离、零相对速度、不等半径、极小量 |
-| 查询 | 无邻居、边界、负坐标、距离相同、K 截断、跨多层格子 |
-| 求解 | 无约束、可行交集、平行/冲突约束、速度圆、退化和不可行 |
-| 集成 | 圆周交换、对向流、交叉流、随机群体、初始重叠专用场景 |
-| 质量 | 碰撞、最小间隙、到达率、到达时间、速度抖动、死锁、Fallback/Infeasible |
+| World、配置、双缓冲与释放 | `FrameworkContractTests`、`Phase13Tests` |
+| 二维 VO/RVO/ORCA、最近 K | `Phase1AlgorithmTests`、`Phase13Tests` |
+| 二维地图、路径、KDTree、安全 | `Phase2NavigationTests`、`Phase2OptimizationTests` |
+| 二维交通协调 | `TrafficRecoveryTests` |
+| 三维地图、A*、粗细图、球体 ORCA、安全 | `Phase3VolumeTests` |
+| 个体差异、多房间和通口 | `ReefVariationTests` |
+| 姿态、GPU 数据布局、变形、快照隔离 | `Phase4PresentationTests` |
+| 暂停/单步、球体调试显示、生命周期 | `DriverTests`、`NavigationDriverTests`、`VolumePresentationTests` |
+| GPU 索引、间接绘制、仿真独立性 | `Phase4GpuTests` |
+| 动画/卡片/海洋材质 | `Phase4OceanTests`、`Phase4SurfaceTests` |
+| 真实鱼深度、RGB 光程、背景、显示历史 | `OceanP0Tests` |
+| 随机水纹、mip、接缝、时间插值 | `CausticSamplingTests` |
+| 当前 2048 场景、HUD 和实际抽样路径 | `ReefNetworkPresentationTests` |
 
-初始重叠恢复与正常无碰撞测试分开统计。质量测量不能只复用已截断的 K 个避障邻居，否则会漏掉真正碰撞；使用独立完整 broad phase 或小规模全量检测。高速运动还需在相邻 Tick 之间检查扫掠圆盘/相对线段，不能仅检查离散采样点。
+实际测试代码位于 [EditMode](../../Assets/RVO/Tests/EditMode) 和 [PlayMode](../../Assets/RVO/Tests/PlayMode)。GPU/像素/深度测试需要真实图形设备，不能用 `-nographics` 验收。
 
-## 压测矩阵
+完整 EditMode **不等于只跑小规模正确性**：`Phase2ThroughputTests` 含普通 TestCase 的 16/256/1024 档吞吐记录，以及阶段测量；`Phase1SurveyTests` 也会导出调查数据。很多测试会写 `Verification` 或 `Documentation/RVO/Verification`，同一路径可能覆盖旧输出。正式复现应使用脚本约定的新目录，或在独立测试副本中运行并保存原证据。
 
-| 维度 | 取值 |
+## 2. 当前 Reef 网络复现
+
+脚本 [RunReefNetwork2048.ps1](RunReefNetwork2048.ps1) 默认 Unity 路径是 `D:/unityhub/Editor/Unity.exe`，可用 `-Unity` 指定本机安装。批处理前关闭占用该项目的 Unity 实例，在项目根目录运行；输出目录需尚不存在。
+
+```powershell
+./Documentation/RVO/RunReefNetwork2048.ps1 -Stage Tests -Output Documentation/RVO/Verification/ReefNetwork2048/Retest
+./Documentation/RVO/RunReefNetwork2048.ps1 -Stage Profile -Output Documentation/RVO/Verification/ReefNetwork2048/Reprofile
+./Documentation/RVO/RunReefNetwork2048.ps1 -Stage Capture -Output Documentation/RVO/Verification/ReefNetwork2048/Recapture
+```
+
+| Stage | 实际行为 |
 | --- | --- |
-| 规模 | 100 / 1,000 / 10,000 |
-| 避障 | None / VO / RVO / ORCA |
-| 邻居 | BruteForce / SpatialHash；超慢对照可明确跳过并记录原因 |
-| 分布 | 恒定密度扩域、固定域增加密度，两组分别报告 |
-| 场景 | OpposingGroups 为基础，补 CircleSwap / Crossing / RandomCrowd |
-| 渲染 | 关闭表现的纯仿真；开启表现的端到端，分别报告 |
-| 后端 | 单线程参考；Jobs / Burst（实现后） |
+| Tests | 跑 `ReefVariationTests;Phase3VolumeTests;TrafficRecoveryTests` 的 EditMode，再跑 D3D11 `ReefNetworkPresentationTests` |
+| Profile | 调用 `ReefPerformance.BuildAndRun`，**先重建当前保存的场景/导航资产**，再测当前最大数量档 |
+| Capture | 在 D3D11 连续采集总览、俯视和保守代理画面 |
 
-菜单生成的三个配置是 ORCA + SpatialHash、对向群体、近似恒定密度扩域；不是完整测试矩阵，也不是最优参数。随机场景须检查生成可行性并限制重试次数；圆周场景半径要随数量调整以避免起始重叠。
+Tests 阶段没有包含 `CausticSamplingTests`，要检查水纹必须另选该 PlayMode 类或使用旧脚本的对应测试入口。Profile 应先保存自定义资产；它会应用当前 `OceanReefBuilder` / `ReefRouteLayout` 的生成预设。
 
-默认计划：300 Tick 预热、1,800 Tick 采样、3 次重复，固定步长 1/30 秒。使用确切 Tick 数，禁用 VSync/目标帧率对纯仿真计时的限制；记录是否开启 Burst、安全检查和 Development Build。启动、编译、资源加载和报告写盘不混入热路径数据。
+编辑器菜单 **Tools → RVO → Profile Reef (largest tier, 1800 ticks x 3)** 直接测现有 Profile。默认取 `AgentCountTiers.z`，当前为 2048；脚本 Profile 的 BuildAndRun 还会重建资产。`-reef-agents` 可覆盖数量，`-reef-repeats` 可覆盖 1–10 次重复。
 
-长测不能大部分时间都在测已到达并静止的 Agent。记录随时间变化的活跃移动比例；按场景调整采样窗口，或设计可持续目标交换的明确场景策略，并在各算法之间保持一致。
+当前测量采用独立 16-agent 小世界预热，随后每次创建新 World，共用 `BakedNavigationVolume.Load()` 缓存的地图与已预热地标。每次连续 1800 Tick（三次默认重复），保留首批路径工作。**不是每次重新解码、冷建地标的启动基准。**
 
-## 指标与定义
+输出 summary、curve、agents、spawns、portals、bypasses 与 environment。Tick 计时来自 World，观测、写 CSV、路线统计在计时之外。静态整段检查每 Tick 覆盖全体 agent；独立成对动态质量检查每 30 Tick 抽样，不能解释为独立逐 Tick 全 pair 验证。生产安全层始终运行。
 
-- 时间：每 Tick 总仿真耗时、各阶段耗时、P50/P95/P99、吞吐 Agent/s；同时注明 wall time 还是累计 CPU time。Job.Schedule 的提交耗时不能当作 Job 的执行耗时。
-- 内存：Native 容量/峰值、托管分配、热路径 GC；固定容量方案目标是稳态每 Tick 无托管分配。
-- 查询：候选数、实际邻居数、桶占用、DroppedCounts 和发生截断的 Agent 比例。
-- 安全：重叠 pair 数、扫掠碰撞 pair 数、最小有符号表面间隙、InvalidInput、Fallback、Infeasible。每个 pair 只统计一次。
-- 进度：到达率、到达时间、路径长度/直线长度、持续低速且未到达的时间、速度变化幅度。低速不自动等同于死锁，需结合目标距离和时间窗口。
+当前保存的正式证据是 [Final/summary.csv](Verification/ReefNetwork2048/Final/summary.csv)，完整解释见 [2048 报告](VERIFICATION_REEF_NETWORK2048.md)。本次没有重跑。
 
-World.LastMetrics / BenchmarkReport 已采集计时、主线程 GC、候选计数、扫掠碰撞、速度变化、持续低速、约束违反量和分位数。Native 内存仅估算有效载荷，未测峰值。关闭阶段计时后汇总值为 -1；关闭质量时使用 QualityCollected=false 且汇总值为 -1，原始 CSV 质量列不得解读为实测。质量检查较贵时分离计时通道，并明确检查频率和覆盖范围。
+## 3. 其他入口及历史脚本边界
 
-## 报告要求
+| 入口 | 用途与边界 |
+| --- | --- |
+| `Run Selected Profile Benchmark (explicit)` | 显式运行选中 Phase 1 Profile 的 BenchmarkRunner；1k/10k 配置是真实测量入口 |
+| `Profile Phase 3 startup (1024 agents)` | 首路径就绪延迟及初始化口径，区别于总到达时间 |
+| `Profile Phase 3 (600 ticks per tier)` | 三维短阶段成本，包含首批路径 |
+| `Run Phase 3 Matrix (60s wall cap per tier)` | 按墙钟上限跑到达矩阵 |
+| `Run Phase 3 Full Tick Acceptance` | 按配置 AcceptanceTicks 跑更完整矩阵 |
+| [RunReefRoutes48.ps1](RunReefRoutes48.ps1) | 保留水纹/导航检查与采集入口；Profile 调用当前 Builder 和最大档，**不会复原旧 64 m、1024、20/48 障碍地图对照** |
+| [RunPhase4Benchmarks.ps1](RunPhase4Benchmarks.ps1) | 合成/Live Player 渲染 case 的串行执行与输出收集；依赖已构建的 Player，参数见脚本和阶段报告 |
 
-原始 CSV 每行对应一个 measured Tick，汇总 JSON 包含配置快照、seed、Unity/包版本、代码版本标识、CPU/GPU/RAM/OS、构建模式、分辨率、渲染开关、worker 数、算法与查询参数、预热/采样数量。浮点数导出使用 invariant culture。
+旧 `ReefRoutes48` 对照要恢复报告对应的源代码、生成器、Profile 和地图资产再测。仅在当前代码运行旧脚本无法复现历史配置。历史 100/1k/10k 的完整算法、场景、Player 矩阵没有因为工具存在或针对性测试通过而自动完成。
 
-目标机器与预算尚未指定，因此目前不设“必须 60 FPS”等未经确认的数字门槛。先取得可复现基线，再选择产品目标；Phase 1 完成必须有真实 100 / 1k / 10k 测量与质量解释，不能只列配置资产。
+## 4. 质量检查的定义
 
-优化前后使用相同输入和质量标准。跨硬件/不同编译后端只要求指定容差范围内一致，不承诺位级确定性。
+| 项目 | 检查原则 |
+| --- | --- |
+| 运动/输入 | 有限数值、速度上限、二维 Y 不变量、三维初始球体间距 |
+| 邻居 | 完整 XYZ/XZ 距离、边界、负坐标、同距离稳定 ID、最近 K 和截断统计 |
+| 路径 | 端点状态、请求取消、预算、容量、独立最短路对照、全部段净空、粗图失败的细图回退 |
+| 求解 | 速度圆/球、平面可行侧、退化、硬约束和动态松弛 |
+| 连续安全 | 相邻 Tick 之间的扫掠运动；离散位置没重叠不能证明一步内没对穿 |
+| 恢复 | 等待、退让/租约、限频重规划、有限 Tick 内到达与未到达者 |
+| 表现 | 只读复制、ID/Generation、同 Tick 仿真独立性、GPU buffer/索引、真实像素/深度/法线/motion |
+| 生命周期 | 多次 Reset、停用/启用、退出场景、资源重建、完成 Job 后释放 |
 
-## P1.0 历史验证记录
+独立质量不能只复用 ORCA 的已截断邻居集合。小世界全 pair、规模测量抽样需要明确覆盖范围。HUD 的 `Independent O(N²) XYZ diagnostics` 可关闭以排除诊断成本，它不关闭生产静态/动态安全层。三维 None 关闭 agent-agent 防护，不能纳入 ORCA 的动态安全结论。
 
-2026-09-27（Asia/Shanghai）：使用 Unity 6000.0.63f1，在 `Temp/RvoFrameworkValidation` 的独立临时项目中运行 batchmode / nographics / EditMode；复制本次 RVO 代码和配置，依赖指向当前项目已解析的本地包缓存，避免影响用户已打开的 Unity 实例。验证后比对全部 C# 文件，副本与交付代码一致。
+## 5. 性能报告口径
 
-- `Rvo.Runtime`、`Rvo.Editor`、`Rvo.Tests.EditMode` 编译成功。
-- 7 个测试用例通过，0 失败、0 跳过：非法配置、4 种算法占位阻止启动、Full3D 防止错误回退、世界双缓冲与生命周期。
-- 三档配置随测试工程完成资产导入；未执行其避障或压测任务。
-- 测试替身同步执行，仅验证 World 的调度边界与提交行为；尚未验证真实异步 Job 竞争、实际避障算法、可视效果、持续 Play/停止的泄漏情况或 10k 性能。
+必须区分固定仿真时间、实际墙钟、CPU Tick、显示帧循环和有效 GPU 时间。记录 Unity/包/代码版本、地图资产/几何、seed、半径/速度差异、查询范围/K、后端、搜索预算、渲染/诊断开关、硬件、分辨率、图形 API、构建模式、预热与采样范围。
 
-原始结果保存在 [FrameworkTests.xml](Verification/FrameworkTests.xml)。重新验证可直接在原项目的 Unity Test Runner 中运行该 EditMode 测试程序集。
+- `MeasureStages=true` 每阶段 Complete，含执行与等待，也增加同步；正式总耗时应同时明确是否开启该模式。
+- 节点预算不是硬毫秒预算；路径平滑、队列和恢复也有成本。冷启动解码、地标构建、Burst 编译必须与预热后的 Tick 区分。
+- 记录首次路径 Ready 的 P50/P95/最大值、NeverReady、首次/当前到达、未到达者、最长等待和重规划；不能只统计成功样本。
+- 随时间记录移动比例，避免大部分采样都在测已到达静止个体。
+- GC 字段通常是 World.Step 主线程分配，不代表整个应用零 GC；Native/GPU 字节字段是自有有效载荷，不是峰值或总 VRAM。
+- `FishBenchmarkRecorder` 的 `submit_ms` 是 CPU 准备调度口径，不包含完整 RG/GPU 绘制。GPU 延迟时间戳须去重，无效/重复为 -1；无有效样本不能推导 GPU 成本或 FPS。
+- 合成固定回放能匹配显示轨迹，但不证明 Live 仿真具有相同实时率；离屏图像不包含窗口呈现成本。
+- 性能比较固定同地图、初态、画质与检查范围，不能把不同密度/几何的结果直接相除作加速倍数。
 
-## Phase 1 实施轮历史范围状态
+正式渲染验收仍需有效 GPU 抓帧/分项、可见 Player 稳态运行、同轨迹 AA/LOD 质量对照，以及长期资源趋势。旧报告保留未测和失败，不把功能实现视为所有预算通过。
 
-本轮仅执行 1–64 Agent 正确性与小规模测量；100 / 1k / 10k 配置保留且可运行，但没有执行，不标记为通过。Phase 1 算法工程交付与正式规模验收分开。
+<a id="phase2-evidence"></a>
+## 6. 历史二维优化原始证据
 
-`Phase1AlgorithmTests` 包含独立边界枚举优化参考、Hash 属性对照及真实 Job 生命周期检查。`Phase1SurveyTests` 自动导出 6 场景 × 4 算法 × 2 偏好配置的质量矩阵，并做 32 Agent 后端/阶段对照与 64 Agent 稀疏/密集 Hash 对照。所有运行低于正式档位。Test Runner 全部 EditMode 测试不会调用三档压测配置。
+此索引从已删除的重复页 `VERIFICATION_P2_OPTIMIZATION.md` 合并而来，避免丢失其唯一的证据链接。这些结果对应当时二维版本，不是当前三维主场景的重新测量。
 
-显式入口 `Tools > RVO > Run Selected Profile Benchmark (explicit)` 会运行当前选中配置的测量。暂缓正式压测时不要对三档配置调用这个菜单；使用 Test Runner 即可复核本轮范围。RenderAgents=true 的配置由纯仿真 runner 明确拒绝；端到端计时需在演示中配合 Profiler 另做。
+- [优化基线 XML](Verification/Phase2Optimization/baseline.xml)
+- [最终导航专项 XML](Verification/Phase2Optimization/FinalNavigation.xml)
+- [PlayMode XML](Verification/Phase2Optimization/PlayMode.xml)
+- [1024 SpatialHash CSV](Verification/Phase2Optimization/Final/throughput-1024-SpatialHash.csv)
+- [1024 KdTree CSV](Verification/Phase2Optimization/Final/throughput-1024-KdTree.csv)
 
-## Phase 3 计划规格（尚未执行）
-
-详细案例和分批退出条件以 [PHASE3_PLAN.md](PHASE3_PLAN.md) 第 5–10 节为准。第一批只验收三维静态导航，第二批验收三维动态几何/ORCA，第三批验收组合安全与交通恢复。None/StaticOnly 不具备 agent-agent 安全保证，不能混入 ORCA 安全结论。
-
-三维特有检查包括：必须改变 Y 的路线；同 XZ 不同高度的球体；竖直相遇；26 邻接穿角；球体净空和整段扫掠；速度球与平面可行侧；退让方向在竖直运动下的退化处理。查询与安全检查使用完整 XYZ，独立质量参考不复用被 K 截断的邻居集合。
-
-规模按 16 → 256 → 1024 推进，前两档是固定场景回归，1024 必须交付压力报告。记录首次/当前到达率、请求 Ready 延迟、拥堵等待、瓶颈通过量与每 Tick 核心耗时，并区分 wall-clock 和仿真时间。将可解场景的 Tick 上限在正式运行前固定；超时记录为未通过或已知限制，不能运行到最终到达后才决定上限。
-
-每份未来报告保留地图尺寸/占据和体素分辨率、BakeSignature、半径/速度、时间步长、seed、后端、查询覆盖/K、算法与安全/协调配置、调试开关、代码版本和硬件。分别记录地图与搜索工作区内存，展示等待长尾，而不只报平均 FPS。重放和跨后端检查采用明确容差，显示开关不应改变同 Tick 仿真结果。
-
-阶段推进允许明确的“功能完成、压力档性能待优化”状态；它不同于完整规模验收通过。2D 的用户观察保留为背景，不与不同尺寸/通道容量的 3D 场景直接比较加速倍数。
+详细二维设计在 [PHASE2_PLAN](PHASE2_PLAN.md)，交通恢复及后续结果在 [PHASE2_TRAFFIC](PHASE2_TRAFFIC.md)，旧运行时刷新首版在 [VERIFICATION_P2](VERIFICATION_P2.md)。其他历史报告统一由 [README 索引](README.md) 进入。

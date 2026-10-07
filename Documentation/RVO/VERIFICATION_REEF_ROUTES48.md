@@ -1,5 +1,7 @@
 # 水纹去重复与 48 障碍路线验证（2026-10-05）
 
+> 历史专题记录：下文的默认参数、实现状态和测试数字对应文中日期及当时版本。当前系统结构与运行配置见 [ARCHITECTURE.md](ARCHITECTURE.md)，最新主场景证据见 [2048 多通路报告](VERIFICATION_REEF_NETWORK2048.md)。
+
 本轮完成焦散空间采样改造、48 障碍礁石场景与离线导航重建，以及 1024 agents 的新旧地图测量。现有 A*、启发式权重、搜索预算、ORCA 参数与 agent 档位不变。JPS 和更高 agent 数量留待下一阶段。
 
 ## 焦散
@@ -71,6 +73,8 @@
 这是 Editor 无渲染的 1024-agent 测量，不是整帧/GPU 预算，也不是 2048/4096 agents 的性能承诺。成对安全仅每 30 ticks 抽样，零计数不等于逐 tick 的成对安全证明；静态扫掠则每 tick、每 agent 检查。
 
 ## 重现
+
+> 当前脚本的 Profile 调用最新 OceanReefBuilder 与最大档，会生成 96 m / 192³ / 2048 多通路配置，不能直接复原本页的旧 20/48 障碍对照。严格复现须恢复本报告对应的代码、Profile 和地图；脚本的 Tests/Capture 仍可用于当前版本的相关检查。详情见 [当前验证指南](VALIDATION.md)。
 
 关闭本项目的 Unity 实例后，在项目根目录运行 `Documentation/RVO/RunReefRoutes48.ps1`，使用尚不存在的输出目录：
 

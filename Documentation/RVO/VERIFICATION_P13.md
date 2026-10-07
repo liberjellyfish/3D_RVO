@@ -1,5 +1,7 @@
 # P1.1–P1.3 交付与验证记录
 
+> 历史专题记录：下文的默认参数、实现状态和测试数字对应文中日期及当时版本。当前系统结构与运行配置见 [ARCHITECTURE.md](ARCHITECTURE.md)，最新主场景证据见 [2048 多通路报告](VERIFICATION_REEF_NETWORK2048.md)。
+
 范围：Unity 6000.0.63f1，float3 存储，XZ 圆盘，主线程同步参考实现；None / VO 与 BruteForce 已完成。RVO / ORCA / SpatialHash / Jobs / 正式压测不在本轮完成范围。
 
 ## 实现说明

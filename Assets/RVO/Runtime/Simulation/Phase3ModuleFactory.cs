@@ -42,10 +42,43 @@ namespace Rvo
                 float radius = scenario.Radius * traits.NextFloat(1 - scenario.VolumeSizeVariation, 1 + scenario.VolumeSizeVariation);
                 float speed = scenario.MaxSpeed * traits.NextFloat(1 - scenario.VolumeSpeedVariation, 1 + scenario.VolumeSpeedVariation);
                 a.Parameters[i] = new AgentParameters { Radius = radius, MaxSpeed = speed, ArrivalDistance = scenario.ArrivalDistance };
-                // Alternating directions across the fixed apertures; prefix stable across all three count tiers.
-                a.Positions[i] = Pick(a.Positions, a.Parameters, i, i % 2 == 0, radius, ref random);
-                a.Goals[i] = Pick(a.Goals, a.Parameters, i, i % 2 != 0, radius, ref random);
+                if (scenario.VolumeSpawns == VolumeSpawnPattern.DistributedRooms)
+                {
+                    // All 18 rooms receive starts. The offset cycles through all other
+                    // destinations; count tiers retain the same prefix and traffic mix.
+                    int startRoom=i%18, goalRoom=(startRoom+1+(i/18)%17)%18;
+                    a.Positions[i]=PickRoom(a.Positions,a.Parameters,i,startRoom,radius,ref random);
+                    a.Goals[i]=PickRoom(a.Goals,a.Parameters,i,goalRoom,radius,ref random);
+                }
+                else
+                {
+                    a.Positions[i] = Pick(a.Positions, a.Parameters, i, i % 2 == 0, radius, ref random);
+                    a.Goals[i] = Pick(a.Goals, a.Parameters, i, i % 2 != 0, radius, ref random);
+                }
             }
+        }
+        private float3 PickRoom(NativeArray<float3> points, NativeArray<AgentParameters> parameters,
+            int count, int room, float radius, ref Unity.Mathematics.Random random)
+        {
+            float size=map.Resolution*map.CellSize;
+            float3 center=(map.Min+map.Max)*0.5f+size*new float3((room%3-1)/3f,room/9==0 ? -0.2f : 0.2f,(room/3%3-1)/3f);
+            float3 half=size*new float3(0.115f,0.08f,0.115f);
+            for(int attempt=0;attempt<16384;attempt++)
+            {
+                float3 candidate=random.NextFloat3(center-half,center+half);
+                int3 cell=(int3)math.floor((candidate-map.Min)/map.CellSize);
+                if(!map.Contains(cell)) continue;
+                int index=map.Index(cell);
+                if(map.Component(index)!=map.LargestComponent) continue;
+                float3 p=map.Center(index); bool free=true;
+                for(int j=0;j<count;j++)
+                {
+                    float spacing=radius+parameters[j].Radius+0.3f;
+                    if(math.distancesq(p,points[j])<spacing*spacing) { free=false; break; }
+                }
+                if(free) return p;
+            }
+            throw new InvalidOperationException($"Cannot place separated starts/goals in distributed room {room}.");
         }
         private float3 Pick(NativeArray<float3> points, NativeArray<AgentParameters> parameters, int count, bool left, float radius, ref Unity.Mathematics.Random random)
         {

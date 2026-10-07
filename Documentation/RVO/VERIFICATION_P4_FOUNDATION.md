@@ -1,6 +1,8 @@
 # Phase 4.0–4.2：GPU 鱼群基础链路与验证
 
-更新：2026-10-03。Unity 6000.0.63f1 / URP 17.0.4；本轮交付基础实现、演示场景与测量入口。后续终态设计见 [详细规划](PHASE4_GPU_VISUALIZATION_PLAN.md)。VAT/Bone、impostor、Ocean 和 P4.7 正式性能矩阵未实施。
+> 历史专题记录：下文的默认参数、实现状态和测试数字对应文中日期及当时版本。当前系统结构与运行配置见 [ARCHITECTURE.md](ARCHITECTURE.md)，最新主场景证据见 [2048 多通路报告](VERIFICATION_REEF_NETWORK2048.md)。
+
+更新：2026-10-03。Unity 6000.0.63f1 / URP 17.0.4；本轮交付基础实现、演示场景与测量入口。后续终态设计见 [当前渲染框架](ARCHITECTURE.md#rendering)。VAT/Bone、impostor、Ocean 和 P4.7 正式性能矩阵未实施。
 
 ## 1. 交付与使用
 

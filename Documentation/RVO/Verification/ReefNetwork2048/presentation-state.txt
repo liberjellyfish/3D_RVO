@@ -1,0 +1,9 @@
+agents=2048
+HUD=True
+planner=Budgeted sparse XYZ A*
+coarse=True
+weight=1.5
+tick=120
+neverReady=0
+failed=0
+visibleSampleRoutes=18

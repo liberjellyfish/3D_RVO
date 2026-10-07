@@ -98,6 +98,11 @@ namespace Rvo.Editor
             string study=Argument("-rvo-study","");
             var water=fish.ViewCamera.GetComponent<OceanEnvironment>();
             water.StochasticCaustics=Argument("-rvo-repeat","0")!="1";
+            if(Argument("-rvo-proxies","0")=="1")
+            {
+                fish.ViewCamera.GetComponent<OceanPresentation>().DebugProxies.gameObject.SetActive(true);
+                GameObject.Find("Authored reef meshes")?.SetActive(false);
+            }
             if(study.Length==0) return;
             source.Paused=true; fish.enabled=false;
             GameObject.Find("Authored reef meshes")?.SetActive(false);

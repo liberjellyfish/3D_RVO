@@ -26,6 +26,7 @@ namespace Rvo
         public event Action PresentationCleared;
         private readonly FixedStepClock clock = new FixedStepClock();
         private bool started;
+        private int generationStartFrame;
         private ExecutionBackend? backend;
         private NeighborSearchAlgorithm? query;
         private AvoidanceAlgorithm? avoidance;
@@ -39,7 +40,7 @@ namespace Rvo
         }
         public void ResetSimulation()
         {
-            Release(); clock.Reset(); LastError = null; Quality = default; Generation++;
+            Release(); clock.Reset(); LastError = null; Quality = default; Generation++; generationStartFrame=Time.frameCount;
             try
             {
                 if (Profile == null) throw new InvalidOperationException("Assign a Phase 3 profile.");
@@ -94,11 +95,14 @@ namespace Rvo
             if (!ShowHud) return;
             bool reset = false; int requestedTier = -1;
             GUILayout.BeginArea(new Rect(12, 12, 360, Mathf.Max(120, Screen.height - 24)), GUI.skin.box);
-            GUILayout.Label("Phase 3 · XYZ voxel navigation");
+            GUILayout.Label("3D navigation · live strategy and progress");
             if (World == null) GUILayout.Label(LastError ?? "Not running");
             else
             {
                 GUILayout.Label($"{Navigation.Map.Resolution}³ baked | {World.Settings.AgentCount} agents | Tick {World.Tick}");
+                GUILayout.Label($"Frame {Time.frameCount-generationStartFrame} | simulated {World.Tick*World.Settings.FixedDeltaTime:F1}s");
+                GUILayout.Label($"Planner: {(Profile.Volume.UseCoarseRoutes ? "coarse + fine" : "fine")} A* | weight {Profile.Volume.HeuristicWeight:F1}");
+                GUILayout.Label($"Spawns: {Profile.Scenario.VolumeSpawns}");
                 GUILayout.BeginHorizontal();
                 if (GUILayout.Button(Paused ? "Resume" : "Pause")) Paused = !Paused;
                 if (GUILayout.Button("Step")) { Paused = true; StepOnce(); }
@@ -108,9 +112,10 @@ namespace Rvo
                 {
                     GUILayout.BeginHorizontal(); for (int tier = 0; tier < 3; tier++) if (GUILayout.Button(Profile.CountForTier(tier).ToString())) requestedTier = tier; GUILayout.EndHorizontal();
                     GUILayout.Label($"Current / first arrival: {Metrics.CurrentArrived} / {Metrics.FirstArrived}");
-                    GUILayout.Label("Arrived: white + dark belt | travelling / blocked: color");
                     GUILayout.Label($"First route ready: {World.Settings.AgentCount - Metrics.NeverReady} / {World.Settings.AgentCount}");
                     GUILayout.Label($"Pending {Navigation.PendingCount} | failed {Navigation.FailedCount} | expanded {Navigation.LastExpandedNodes}");
+                    GUILayout.Label($"Travelling {Mathf.Max(0,World.Settings.AgentCount-Navigation.PendingCount-Navigation.FailedCount-Metrics.CurrentArrived)} | arrived {Metrics.CurrentArrived}");
+                    GUILayout.Label($"Coarse routes {Navigation.CoarsePaths} | fine fallbacks {Navigation.CoarseFallbacks}");
                     GUILayout.Label($"Step {World.LastMetrics.TotalSimulationMilliseconds:F2} ms | wait max {Metrics.LongestWait:F1}s");
                     GUILayout.Label($"Safety scale {Solver.LastSafetyScale:F3} | limited {Solver.LastLimitedAgents} | pair tests {Solver.LastSafetyPairChecks}");
                     GUILayout.Label($"Yield {Navigation.Traffic.YieldingCount} | recovery replans {Navigation.RecoveryReplans}");

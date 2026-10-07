@@ -1,8 +1,10 @@
 # OceanLive P0 画面复核与 P1 / P2 推进
 
+> 历史专题记录：下文的默认参数、实现状态和测试数字对应文中日期及当时版本。当前系统结构与运行配置见 [ARCHITECTURE.md](ARCHITECTURE.md)，最新主场景证据见 [2048 多通路报告](VERIFICATION_REEF_NETWORK2048.md)。
+
 2026-10-05 后续更新：水纹材质、20 个礁石代理、彩色鱼纹及随机体型/速度见 [礁石海洋表现优化](REEF_ENHANCEMENT.md)。本页保留 2026-10-04 的历史记录。
 
-日期：2026-10-04。范围对应 [OceanLive 重构规划](OCEANLIVE_RENDER_REARCHITECTURE_REVIEW.md) 第 10 节，和旧 Phase 1 / Phase 2 算法阶段无关。本轮保留工作区已有 P0 修改；按用户要求没有新增或运行自动化测试、数值回归、规模性能矩阵。
+日期：2026-10-04。范围为 OceanLive 重构后的礁石、PBR、motion、AA 与上传复用，和旧 Phase 1 / Phase 2 算法阶段无关。本轮保留工作区已有 P0 修改；按用户要求没有新增或运行自动化测试、数值回归、规模性能矩阵。
 
 ## 直接打开
 

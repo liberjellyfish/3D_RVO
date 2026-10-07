@@ -1,5 +1,7 @@
 # Phase 3 收尾：到达标识与首路径延迟
 
+> 历史专题记录：下文的默认参数、实现状态和测试数字对应文中日期及当时版本。当前系统结构与运行配置见 [ARCHITECTURE.md](ARCHITECTURE.md)，最新主场景证据见 [2048 多通路报告](VERIFICATION_REEF_NETWORK2048.md)。
+
 日期：2026-10-01。Unity 6000.0.63f1，i7-12650H，Editor，JobsBurst，同一 256³ / 104 障碍地图、seed 7、30 Hz；没有重烘焙或更改演示预算。
 
 ## 实现与边界
@@ -49,6 +51,6 @@
 
 实际图形 PlayMode 的 **2 项测试通过**：[PlayMode-Closeout.xml](Verification/Phase3/PlayMode-Closeout.xml)，Direct3D 11。覆盖到达/未到达的静止球体对照、目标变化恢复原色、Reset，以及持续跟随/相机偏移和 Fit。已查看实际 [终点标识截图](Verification/Phase3/Presentation/arrived.png)：左边白色深腰带为到达，右边彩色同样静止但尚未到达。此项不测稳定态渲染 FPS。
 
-Phase 4 的最小范围与只读边界见 [渲染专题规划](PHASE4_PRESENTATION.md)；本次未增加 GPU/VAT/海洋实现。
+Phase 4 的最小范围与只读边界见 [当前渲染框架](ARCHITECTURE.md#rendering)；本次未增加 GPU/VAT/海洋实现。
 
 重跑入口：`Tools > RVO > Profile Phase 3 startup (1024 agents)`、`Tools > RVO > Run Phase 3 Matrix (60s wall cap per tier)`。批处理使用 `--burst-force-sync-compilation`，测试分别选择 `Rvo.Tests.Phase3VolumeTests` 与 `Rvo.Tests.VolumePresentationTests`；渲染测试需启用图形设备。
